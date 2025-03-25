@@ -5,6 +5,7 @@
   import ReferenceHelper from "../lib/components/ReferenceHelper.svelte";
   import IntroductionSection from "../lib/components/IntroductionSection.svelte";
   import ResourceSection from "../lib/components/ResourceSection.svelte";
+  import ConfirmationModal from "../lib/components/ConfirmationModal.svelte";
 
   let resources = [
     {
@@ -15,6 +16,9 @@
       references: [],
     },
   ];
+
+  let showPublishModal = false;
+  let showCancelModal = false;
 
   function handleResourceUpdate(event) {
     const { id, field, value } = event.detail;
@@ -58,6 +62,30 @@
     };
     resources = [...resources, newResource];
   }
+
+  function handlePublishClick() {
+    showPublishModal = true;
+  }
+
+  function handleCancelClick() {
+    showCancelModal = true;
+  }
+
+  function handlePublishConfirm() {
+    // TODO: Implement publish to Canvas logic
+    showPublishModal = false;
+  }
+
+  function handleCancelConfirm() {
+    // TODO: Implement return to home logic
+    showCancelModal = false;
+  }
+
+  function handleModalCancel() {
+    showPublishModal = false;
+    showCancelModal = false;
+  }
+
 </script>
 
 <div class="page-container">
@@ -94,15 +122,29 @@
           </clipPath>
         </defs>
       </svg>
-      <span>Add New Resource</span>
+      <span>Add New Resource +</span>
     </button>
   </div>
 
   <div class="button-group">
-    <button class="cancel-btn">Cancel</button>
-    <button class="save-btn">Save Page</button>
+    <button class="cancel-btn" on:click={handleCancelClick}>Cancel</button>
+    <button class="publish-btn" on:click={handlePublishClick}>Publish</button>
   </div>
 </div>
+
+<ConfirmationModal
+  show={showPublishModal}
+  type="publish"
+  onConfirm={handlePublishConfirm}
+  onCancel={handleModalCancel}
+/>
+
+<ConfirmationModal
+  show={showCancelModal}
+  type="cancel"
+  onConfirm={handleCancelConfirm}
+  onCancel={handleModalCancel}
+/>
 
 <style>
   * {
@@ -146,10 +188,10 @@
     justify-content: flex-start;
   }
 
-  .save-btn {
+  .publish-btn {
     background: #71be81;
     color: white;
-    padding: 0 2rem;
+    padding: 0.5rem 2rem;
     border: none;
     cursor: pointer;
   }
@@ -160,5 +202,6 @@
     padding: 0.5rem 2rem;
     border: none;
     cursor: pointer;
+
   }
 </style>

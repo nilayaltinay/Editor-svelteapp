@@ -1,4 +1,6 @@
 <script>
+        import { fade } from 'svelte/transition';
+
     export let showModal = false;
     export let title = "";
 
@@ -15,13 +17,13 @@
 
 {#if showModal}
     <div
-        class="modal-backdrop"
+        class="modal-backdrop transition:fade={{ duration: 150 }}"
         on:keydown={handleKeydown}
         tabindex="0"
         role="dialog"
         aria-modal="true"
     >
-        <div class="modal-content" on:click|stopPropagation on:keydown|stopPropagation role="dialog" tabindex="0">
+        <div class="modal-content" on:click|stopPropagation on:keydown|stopPropagation role="dialog" tabindex="0" transition:fade={{ duration: 200 }}>
             <button class="close-button" on:click={closeModal}>&times;</button>
             <div class="modal-header">
                 <h2>{title}</h2>
