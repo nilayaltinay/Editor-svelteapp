@@ -43,6 +43,7 @@
     let editor;
   
     let showReferenceModal = false;
+    let showDeleteConfirmModal = false;
     let savedReferences = []; // Kaydedilen referansları tutacak array
   
     function updateFeatureState(updates) {
@@ -118,8 +119,22 @@
   
     function openReferenceModal() {
         showReferenceModal = true;
-    }
+    }  
   
+    function openDeleteConfirmModal() {
+        showDeleteConfirmModal = true;
+    }
+
+    function confirmDelete() {
+        if (resource?.id) {
+            dispatch("delete", { id: resource.id });
+            showDeleteConfirmModal = false;
+        }
+    }
+
+    function closeDeleteConfirmModal() {
+        showDeleteConfirmModal = false;
+    }
   
     // Event handlers
     function handleVideoEmbed() {
@@ -169,15 +184,22 @@
   
     function handleDelete() {
         console.log("Delete button clicked");
-        if (resource?.id) {
-            dispatch("delete", { id: resource.id });
-        }
+        openDeleteConfirmModal();
     }
   
     function handleMoveUp() {
         if (typeof index === "number") {
             dispatch("move", {
                 direction: "up",
+                currentIndex: index,
+            });
+        }
+    }
+
+    function handleMoveDown() {
+        if (typeof index === "number") {
+            dispatch("move", {
+                direction: "down",
                 currentIndex: index,
             });
         }
@@ -195,14 +217,7 @@
         showReferenceModal = false;
     }
   
-    function handleMoveDown() {
-        if (typeof index === "number") {
-            dispatch("move", {
-                direction: "down",
-                currentIndex: index,
-            });
-        }
-    }
+
   
     onMount(() => {
         if (typeof window !== "undefined") {
@@ -585,6 +600,26 @@
         {@html icons.delete}
     </button>
   </div>
+  
+  <!-- Özel silme onay modalı -->
+  {#if showDeleteConfirmModal}
+  <div class="delete-confirm-backdrop" transition:fade={{ duration: 150 }}>
+      <div class="delete-confirm-modal" transition:fade={{ duration: 200 }}>
+          <div class="delete-confirm-title">Delete resource</div>
+          <div class="delete-confirm-content">
+              <p class="delete-confirm-resource-title">{resource.title || "Untitled resource"}</p>
+          </div>
+          <div class="delete-confirm-actions">
+              <button class="delete-cancel-btn" on:click={closeDeleteConfirmModal}>
+                  Cancel
+              </button>
+              <button class="delete-confirm-btn" on:click={confirmDelete}>
+                  Confirm
+              </button>
+          </div>
+      </div>
+  </div>
+  {/if}
   
   <style>
     * {
@@ -1142,6 +1177,80 @@
         color: #2c3e50;
         font-size: 14px;
         line-height: 1.6;
+    }
+  
+    .delete-confirm-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.3);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+
+    .delete-confirm-modal {
+        background-color: white;
+        width: 400px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        padding: 2rem 5rem;
+    }
+
+    .delete-confirm-title {
+        font-size: 16px;
+        font-weight: 500;
+        text-align: center;
+    }
+
+    .delete-confirm-content {
+        padding: 20px;
+        text-align: center;
+    }
+
+    .delete-confirm-resource-title {
+        margin: 0;
+        font-style: italic;
+        color: #555;
+    }
+
+    .delete-confirm-actions {
+        display: flex;
+        gap: 1rem;
+
+    }
+
+    .delete-cancel-btn, .delete-confirm-btn {
+        flex: 1;
+        padding: 4px 24px;
+        border: none;
+        font-size: 14px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    .delete-cancel-btn {
+        background-color: white;
+        color: #333;
+        border: 1px solid #100f0f38;
+    }
+
+    .delete-confirm-btn {
+        background-color: #ff5656;
+        color: white;
+    }
+
+    .delete-cancel-btn:hover {
+        background-color: #f8f8f8;
+    }
+
+    .delete-confirm-btn:hover {
+        background-color: #ff3636;
     }
   </style>
   
