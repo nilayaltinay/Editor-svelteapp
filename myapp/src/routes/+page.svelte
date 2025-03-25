@@ -47,7 +47,8 @@
   }
 
   function handleAddResource() {
-    const newId = String(resources.length + 1);
+    // Benzersiz bir ID oluştur - timestamp + random sayı kombinasyonu
+    const newId = Date.now() + "-" + Math.floor(Math.random() * 1000);
     const newResource = {
         id: newId,
         title: "",
