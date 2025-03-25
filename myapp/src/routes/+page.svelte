@@ -165,7 +165,7 @@
     border: 1px solid #e5e5e5;
     border-radius: 1px;
     padding: 2rem;
-    margin: 1rem 0;
+    margin-bottom: 0;
     display: flex;
     justify-content: center;
   }
@@ -186,6 +186,7 @@
   .button-group {
     display: flex;
     justify-content: flex-start;
+    padding-top: 2rem;
   }
 
   .publish-btn {
