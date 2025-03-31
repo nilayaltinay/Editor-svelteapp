@@ -51,9 +51,9 @@
 
     .modal-content {
         background: white;
-        padding: 20px;
+        padding: 30px;
         border-radius: 4px;
-        width: 90%;
+        width: 70%;
         max-width: 800px;
         max-height: 90vh;
         overflow-y: auto;

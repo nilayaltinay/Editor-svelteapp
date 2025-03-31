@@ -175,6 +175,8 @@
     margin-bottom: 0;
     display: flex;
     justify-content: center;
+    background: #FCFCFC;
+
   }
 
   .add-resource-btn {
