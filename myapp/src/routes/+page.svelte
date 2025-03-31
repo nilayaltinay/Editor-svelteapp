@@ -6,6 +6,7 @@
   import IntroductionSection from "../lib/components/IntroductionSection.svelte";
   import ResourceSection from "../lib/components/ResourceSection.svelte";
   import ConfirmationModal from "../lib/components/ConfirmationModal.svelte";
+  import HeaderSection from "../lib/components/HeaderSection.svelte";
 
   let showIntroduction = true;
   let resources = [
@@ -93,7 +94,10 @@
 
 </script>
 
+
+
 <div class="page-container">
+  <HeaderSection />
   {#if showIntroduction}
     <IntroductionSection on:delete={handleIntroductionDelete} />
   {/if}

@@ -152,8 +152,8 @@
 
 <style>
     * {
-      font-family: "Lato Extended", "Lato", "Helvetica Neue", "Helvetica", "Arial",
-        "sans-serif";
+      font-family: "Inter", "Lato Extended", "Lato", "Helvetica Neue", "Helvetica",
+      "Arial", "sans-serif";
       box-sizing: border-box;
       line-height: 1.6;
       font-size: 14px;
