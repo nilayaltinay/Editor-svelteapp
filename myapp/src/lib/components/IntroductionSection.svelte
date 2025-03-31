@@ -1,6 +1,7 @@
 <script>
     import { onMount } from "svelte";
     import { createEventDispatcher } from 'svelte';
+    import ConfirmationModal from './ConfirmationModal.svelte';
 
     const dispatch = createEventDispatcher();
     
@@ -10,6 +11,7 @@
     let startY = 0;
     let startHeight = 0;
     let editor;
+    let showDeleteModal = false;
 
     function toggleFullscreen() {
         isIntroFullscreen = !isIntroFullscreen;
@@ -41,7 +43,16 @@
     }
 
     function handleDelete() {
+        showDeleteModal = true;
+    }
+
+    function handleConfirmDelete() {
+        showDeleteModal = false;
         dispatch('delete');
+    }
+
+    function handleCancelDelete() {
+        showDeleteModal = false;
     }
 
     onMount(() => {
@@ -131,6 +142,13 @@
         {@html icons.delete}
     </button>
 </div>
+
+<ConfirmationModal 
+    show={showDeleteModal}
+    type="deleteIntroduction"
+    onConfirm={handleConfirmDelete}
+    onCancel={handleCancelDelete}
+/>
 
 <style>
     * {

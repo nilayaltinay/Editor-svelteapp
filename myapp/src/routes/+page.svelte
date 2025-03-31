@@ -7,6 +7,7 @@
   import ResourceSection from "../lib/components/ResourceSection.svelte";
   import ConfirmationModal from "../lib/components/ConfirmationModal.svelte";
 
+  let showIntroduction = true;
   let resources = [
     {
       id: "1",
@@ -86,10 +87,16 @@
     showCancelModal = false;
   }
 
+  function handleIntroductionDelete() {
+    showIntroduction = false;
+  }
+
 </script>
 
 <div class="page-container">
-  <IntroductionSection />
+  {#if showIntroduction}
+    <IntroductionSection on:delete={handleIntroductionDelete} />
+  {/if}
 
   {#each resources as resource, index (resource.id)}
     <ResourceSection

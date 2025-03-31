@@ -28,6 +28,13 @@
             confirmText: 'Delete',
             confirmButtonClass: 'btn-danger',
             cancelText: 'Cancel'
+        },
+        deleteIntroduction: {
+            title: 'Delete Introduction',
+            subtitle: 'You will lose Introduction of the Resource Page',
+            confirmText: 'Delete',
+            confirmButtonClass: 'btn-danger',
+            cancelText: 'Cancel'
         }
     };
 
