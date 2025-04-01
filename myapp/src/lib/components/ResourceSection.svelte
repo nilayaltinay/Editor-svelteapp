@@ -140,54 +140,71 @@
         showDeleteConfirmModal = false;
     }
 
+    // Video işlemleri için yardımcı fonksiyonlar
+    function isValidYouTubeUrl(url) {
+        return url.includes('youtube.com') || url.includes('youtu.be');
+    }
+
+    function extractVideoId(url) {
+        const match = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+        return match ? match[1] : null;
+    }
+
+    function createEmbedUrl(videoId) {
+        return `https://www.youtube.com/embed/${videoId}`;
+    }
+
+    function setError(message) {
+        errorMessage = message;
+    }
+
+    function clearError() {
+        errorMessage = '';
+    }
+
+    function updateVideoFeature(videoUrl, embedUrl) {
+        updateFeatureState({ 
+            showInput: false,
+            content: {
+                type: "video",
+                content: videoUrl,
+                data: embedUrl,
+            }
+        });
+    }
+
     // Event handlers
     function handleVideoEmbed() {
         if (!featureState.url) {
-            errorMessage = "Please enter a YouTube URL";
-            dispatch("error", {
-                id: resource.id,
-                error: errorMessage
-            });
+            setError("Please enter a YouTube URL");
             return;
         }
 
-        if (!featureState.url.includes('youtube.com') && !featureState.url.includes('youtu.be')) {
-            errorMessage = "Please enter a valid YouTube URL";
-            dispatch("error", {
-                id: resource.id,
-                error: errorMessage
-            });
+        if (!isValidYouTubeUrl(featureState.url)) {
+            setError("Please enter a valid YouTube URL");
             return;
         }
 
-        if (featureState.url) {
-            try {
-                // URL'yi temizle
-                const sanitizedUrl = XssSanitizer.sanitizeUrl(featureState.url);
-                if (!sanitizedUrl) {
-                    errorMessage = "Invalid video URL";
-                    dispatch("error", {
-                        id: resource.id,
-                        error: errorMessage
-                    });
-                    return;
-                }
-
-                // Clear error message on success
-                errorMessage = '';
-                
-                updateFeatureState({ content: null });
-                featureEditor.focus();
-                featureEditor.insertEmbed(0, "video", sanitizedUrl);
-                updateFeatureState({ showInput: false });
-            } catch (error) {
-                console.error("Video embed error:", error);
-                errorMessage = "Error embedding video. Please try again.";
-                dispatch("error", {
-                    id: resource.id,
-                    error: errorMessage
-                });
+        try {
+            const sanitizedUrl = XssSanitizer.sanitizeUrl(featureState.url);
+            if (!sanitizedUrl) {
+                setError("Invalid video URL");
+                return;
             }
+
+            const videoId = extractVideoId(sanitizedUrl);
+            if (!videoId) {
+                setError("Could not extract video ID");
+                return;
+            }
+
+            const embedUrl = createEmbedUrl(videoId);
+            updateVideoFeature(featureState.url, embedUrl);
+            clearError();
+            
+        } catch (error) {
+            console.error("Video embed error:", error);
+            setError("Error embedding video. Please try again.");
         }
     }
 
@@ -318,18 +335,7 @@
 
             // Video Blot konfigürasyonu
             VideoBlot.sanitize = function (url) {
-                if (
-                    url.indexOf("youtube.com") !== -1 ||
-                    url.indexOf("youtu.be") !== -1
-                ) {
-                    const youtubeMatch = url.match(
-                        /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/,
-                    );
-                    if (youtubeMatch && youtubeMatch[1]) {
-                        return `https://www.youtube.com/embed/${youtubeMatch[1]}`;
-                    }
-                }
-                return url;
+                return isValidYouTubeUrl(url) ? url : '';
             };
 
             // Feature editor için özel toolbar options
@@ -393,23 +399,18 @@
                 videoButton.innerHTML = `<span class="custom-icon">${icons.link}</span>`;
             }
 
-            let isProcessing = false;
-            let textChangeTimeout;
-
+            // Sadece resim yüklendiğinde state'i güncelle
             featureEditor.on("text-change", () => {
-                if (isProcessing) return;
-                isProcessing = true;
-
-                // Clear existing timeout
-                if (textChangeTimeout) {
-                    clearTimeout(textChangeTimeout);
+                const img = featureEditor.root.querySelector("img");
+                if (img && !featureState.content?.type) {
+                    updateFeatureState({
+                        content: {
+                            type: "image",
+                            content: "Image",
+                            data: img.src,
+                        },
+                    });
                 }
-
-                // Set new timeout
-                textChangeTimeout = setTimeout(() => {
-                    updateFeatureContent(featureEditor);
-                    isProcessing = false;
-                }, 300);
             });
         }
 
