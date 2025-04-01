@@ -47,6 +47,7 @@
     let showReferenceModal = false;
     let showDeleteConfirmModal = false;
     let savedReferences = []; // Kaydedilen referansları tutacak array
+    let errorMessage = ''; // Add error message state
 
     function updateFeatureState(updates) {
         featureState = { ...featureState, ...updates };
@@ -102,6 +103,7 @@
             url: "",
             content: null,
         });
+        errorMessage = ''; // Error state'i sıfırla
 
         if (featureEditor) {
             featureEditor.setContents([]);
@@ -140,27 +142,50 @@
 
     // Event handlers
     function handleVideoEmbed() {
+        if (!featureState.url) {
+            errorMessage = "Please enter a YouTube URL";
+            dispatch("error", {
+                id: resource.id,
+                error: errorMessage
+            });
+            return;
+        }
+
+        if (!featureState.url.includes('youtube.com') && !featureState.url.includes('youtu.be')) {
+            errorMessage = "Please enter a valid YouTube URL";
+            dispatch("error", {
+                id: resource.id,
+                error: errorMessage
+            });
+            return;
+        }
+
         if (featureState.url) {
             try {
                 // URL'yi temizle
                 const sanitizedUrl = XssSanitizer.sanitizeUrl(featureState.url);
                 if (!sanitizedUrl) {
+                    errorMessage = "Invalid video URL";
                     dispatch("error", {
                         id: resource.id,
-                        error: "Invalid video URL",
+                        error: errorMessage
                     });
                     return;
                 }
 
+                // Clear error message on success
+                errorMessage = '';
+                
                 updateFeatureState({ content: null });
                 featureEditor.focus();
                 featureEditor.insertEmbed(0, "video", sanitizedUrl);
                 updateFeatureState({ showInput: false });
             } catch (error) {
                 console.error("Video embed error:", error);
+                errorMessage = "Error embedding video. Please try again.";
                 dispatch("error", {
                     id: resource.id,
-                    error: "Error embedding video",
+                    error: errorMessage
                 });
             }
         }
@@ -523,15 +548,28 @@
                     >
                         {#if showVideoInput}
                             <input
-                                type="text"
+                                type="url"
                                 id={`feature-url-${resource.id}`}
                                 name={`feature-url-${resource.id}`}
                                 bind:value={featureState.url}
                                 placeholder="Youtube link: https://www.youtube.com/watch?v=2cClcL8-aiY"
                                 class="feature-input"
-                                on:keydown={(e) =>
-                                    e.key === "Enter" && handleVideoEmbed()}
+                                class:error={!!errorMessage}
+                                on:keydown={(e) => e.key === "Enter" && handleVideoEmbed()}
+                                on:input={() => errorMessage = ''}
+                                aria-label="YouTube video URL input"
+                                aria-invalid={!!errorMessage}
+                                aria-describedby={errorMessage ? `error-${resource.id}` : undefined}
                             />
+                            {#if errorMessage}
+                                <div 
+                                    id={`error-${resource.id}`}
+                                    class="error-message" 
+                                    role="alert"
+                                >
+                                    {errorMessage}
+                                </div>
+                            {/if}
                         {:else if currentFeatureContent}
                             <div class="feature-content-info">
                                 <span class="content-name">
@@ -665,6 +703,7 @@
     h3 {
         margin-bottom: 0.5rem;
         color: #333;
+        font-weight: 400;
     }
 
     .title-input {
@@ -1097,10 +1136,13 @@
     }
 
     .feature-input-container {
+        position: relative;
         display: flex;
         align-items: center;
         gap: 8px;
         flex: 1;
+        width: 100%;
+        max-width: 100%;
     }
 
     .feature-content-info {
@@ -1120,6 +1162,13 @@
         border: 1px solid #e5e5e5;
         border-radius: 1px;
         font-size: 14px;
+        width: 100%;
+        transition: border-color 0.2s ease;
+
+    }
+
+    .feature-input.error {
+        border-color: #ff5656;
     }
 
     .feature-input::placeholder {
@@ -1128,6 +1177,11 @@
 
     .feature-input:focus {
         outline: none;
+        border-color: #6792ff;
+    }
+
+    .feature-input.error:focus {
+        border-color: #ff5656;
     }
 
     .feature-cancel-btn {
@@ -1194,4 +1248,20 @@
         font-size: 14px;
         line-height: 1.6;
     }
+
+    .error-message {
+        color: #ff5656;
+        font-size: 12px;
+        margin: 2px;
+        position: absolute;
+        bottom: -24px;
+        left: 0;
+    }
+
+    @media screen and (max-width: 360px) {
+        .error-message {
+            bottom: -44px;
+        }
+    }
+
 </style>
