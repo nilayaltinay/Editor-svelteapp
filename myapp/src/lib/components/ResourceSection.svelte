@@ -5,6 +5,7 @@
     import Modal from "./modal.svelte";
     import ReferenceHelper from "./ReferenceHelper.svelte";
     import ConfirmationModal from "./ConfirmationModal.svelte";
+    import { XssSanitizer, HtmlSanitizer } from '$lib/services/sanitizers';
 
     export let resource = {
         id: "",
@@ -141,15 +142,25 @@
     function handleVideoEmbed() {
         if (featureState.url) {
             try {
+                // URL'yi temizle
+                const sanitizedUrl = XssSanitizer.sanitizeUrl(featureState.url);
+                if (!sanitizedUrl) {
+                    dispatch("error", {
+                        id: resource.id,
+                        error: "Invalid video URL",
+                    });
+                    return;
+                }
+
                 updateFeatureState({ content: null });
                 featureEditor.focus();
-                featureEditor.insertEmbed(0, "video", featureState.url);
+                featureEditor.insertEmbed(0, "video", sanitizedUrl);
                 updateFeatureState({ showInput: false });
             } catch (error) {
-                console.error("Video embed hatası:", error);
+                console.error("Video embed error:", error);
                 dispatch("error", {
                     id: resource.id,
-                    error: "Video eklenirken bir hata oluştu",
+                    error: "Error embedding video",
                 });
             }
         }
@@ -216,6 +227,17 @@
             value: savedReferences,
         });
         showReferenceModal = false;
+    }
+
+    // Form işlemleri için fonksiyonlar
+    function handleTitleChange(event) {
+        const sanitizedTitle = XssSanitizer.sanitize(event.target.value);
+        resource.title = sanitizedTitle;
+        dispatch("update", {
+            id: resource.id,
+            field: "title",
+            value: sanitizedTitle,
+        });
     }
 
     onMount(() => {
@@ -539,7 +561,8 @@
                 type="text"
                 id={`resource-title-${resource.id}`}
                 name={`resource-title-${resource.id}`}
-                bind:value={resource.title}
+                value={resource.title}
+                on:input={handleTitleChange}
                 placeholder="Enter title"
                 class="title-input"
             />
