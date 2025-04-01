@@ -131,8 +131,8 @@
 
 <div class="reference-helper">
   <div class="form-group">
-    <label for="resourceType">Resource Type:</label>
-    <select id="resourceType" bind:value={resourceType} required>
+    <label for="resource-type">Resource Type:</label>
+    <select id="resource-type" bind:value={resourceType} required>
       <option value="">Select a resource type</option>
       <option value="book">Book</option>
       <option value="journal">Journal Article</option>
@@ -142,13 +142,13 @@
   </div>
 
   <div class="form-group">
-    <label for="authors-group">Authors:</label>
-    <div id="authors-group" class="authors-container">
+    <label for="authors-container">Authors:</label>
+    <div id="authors-container" class="authors-container">
       {#each authors as author, i}
         <div class="author-inputs">
-          <input type="text" bind:value={author.firstName} placeholder="First Name" required>
-          <input type="text" bind:value={author.lastName} placeholder="Last Name" required>
-          <input type="number" bind:value={author.year} placeholder="Year" min="1900" max="2100" required>
+          <input type="text" id={`author-first-${i}`} bind:value={author.firstName} placeholder="First Name" required>
+          <input type="text" id={`author-last-${i}`} bind:value={author.lastName} placeholder="Last Name" required>
+          <input type="number" id={`author-year-${i}`} bind:value={author.year} placeholder="Year" min="1900" max="2100" required>
           {#if i > 0}
             <button type="button" class="remove-author" on:click={() => removeAuthor(i)} aria-label="Remove author">×</button>
           {/if}
@@ -159,16 +159,17 @@
   </div>
 
   <div class="form-group">
-    <label for="title">Title:</label>
-    <input type="text" id="title" bind:value={title} required>
+    <label for="reference-title">Title:</label>
+    <input type="text" id="reference-title" bind:value={title} required>
   </div>
 
   <div class="form-group">
-    <label for="publication-fields">Publication Information:</label>
-    <div id="publication-fields" class="publication-fields">
+    <label for="publication-container">Publication Information:</label>
+    <div id="publication-container" class="publication-fields">
       {#each publicationFields as field, i}
         <div class="publication-field">
           <input type={field.type === 'url' ? 'url' : 'text'} 
+                 id={`publication-field-${i}`}
                  bind:value={field.value} 
                  placeholder={field.placeholder} 
                  required>
@@ -187,8 +188,8 @@
   </div>
 
   <div class="form-group">
-    <label for="additional-buttons">Additional Information:</label>
-    <div id="additional-buttons" class="additional-buttons">
+    <label for="additional-container">Additional Information:</label>
+    <div id="additional-container" class="additional-buttons">
       <button type="button" class="secondary-button" on:click={() => addPublicationField('url')}>Add URL</button>
       <button type="button" class="secondary-button" on:click={() => addPublicationField('doi')}>Add DOI</button>
     </div>

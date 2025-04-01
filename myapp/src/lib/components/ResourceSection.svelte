@@ -502,6 +502,8 @@
                         {#if showVideoInput}
                             <input
                                 type="text"
+                                id={`feature-url-${resource.id}`}
+                                name={`feature-url-${resource.id}`}
                                 bind:value={featureState.url}
                                 placeholder="Youtube link: https://www.youtube.com/watch?v=2cClcL8-aiY"
                                 class="feature-input"
@@ -535,6 +537,8 @@
             <h3>Title</h3>
             <input
                 type="text"
+                id={`resource-title-${resource.id}`}
+                name={`resource-title-${resource.id}`}
                 bind:value={resource.title}
                 placeholder="Enter title"
                 class="title-input"
