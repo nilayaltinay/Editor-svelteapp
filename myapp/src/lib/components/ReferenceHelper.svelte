@@ -1,5 +1,7 @@
 <script>
   import { createEventDispatcher } from 'svelte';
+  import { ReferenceValidator } from '$lib/services/validators/ReferenceValidator';
+  import XssSanitizer from '$lib/services/sanitizers/XssSanitizer';
   const dispatch = createEventDispatcher();
 
   let resourceType = '';
@@ -11,6 +13,31 @@
   }];
   let publicationFields = [];
   let referenceOutput = '';
+  let errors = [];
+  let isFormValid = false;
+
+  // Input sanitization handlers
+  function handleResourceTypeChange(event) {
+    resourceType = XssSanitizer.sanitize(event.target.value);
+  }
+
+  function handleTitleChange(event) {
+    title = XssSanitizer.sanitize(event.target.value);
+  }
+
+  function handleAuthorChange(event, index, field) {
+    const sanitizedValue = XssSanitizer.sanitize(event.target.value);
+    authors = authors.map((author, i) => 
+      i === index ? { ...author, [field]: sanitizedValue } : author
+    );
+  }
+
+  function handlePublicationFieldChange(event, index) {
+    const sanitizedValue = XssSanitizer.sanitize(event.target.value);
+    publicationFields = publicationFields.map((field, i) => 
+      i === index ? { ...field, value: sanitizedValue } : field
+    );
+  }
 
   function addAuthor() {
     authors = [...authors, {
@@ -116,15 +143,30 @@
     return reference + '.';
   }
 
-
+  function validateForm() {
+    const validationResult = ReferenceValidator.validateForm({
+      resourceType,
+      title,
+      authors,
+      publicationFields
+    });
+    
+    errors = validationResult.errors;
+    isFormValid = validationResult.isValid;
+    return isFormValid;
+  }
 
   function saveReference() {
+    if (!validateForm()) {
+      return;
+    }
     dispatch('save', { reference: referenceOutput });
   }
 
   $: {
     if (resourceType || title || authors || publicationFields) {
       updateReference();
+      validateForm();
     }
   }
 </script>
@@ -132,7 +174,11 @@
 <div class="reference-helper">
   <div class="form-group">
     <label for="resource-type">Resource Type:</label>
-    <select id="resource-type" bind:value={resourceType} required>
+    <select 
+      id="resource-type" 
+      on:change={handleResourceTypeChange}
+      required
+    >
       <option value="">Select a resource type</option>
       <option value="book">Book</option>
       <option value="journal">Journal Article</option>
@@ -146,11 +192,39 @@
     <div id="authors-container" class="authors-container">
       {#each authors as author, i}
         <div class="author-inputs">
-          <input type="text" id={`author-first-${i}`} bind:value={author.firstName} placeholder="First Name" required>
-          <input type="text" id={`author-last-${i}`} bind:value={author.lastName} placeholder="Last Name" required>
-          <input type="number" id={`author-year-${i}`} bind:value={author.year} placeholder="Year" min="1900" max="2100" required>
+          <input 
+            type="text" 
+            id={`author-first-${i}`} 
+            value={author.firstName}
+            on:input={(e) => handleAuthorChange(e, i, 'firstName')}
+            placeholder="First Name" 
+            required
+          >
+          <input 
+            type="text" 
+            id={`author-last-${i}`} 
+            value={author.lastName}
+            on:input={(e) => handleAuthorChange(e, i, 'lastName')}
+            placeholder="Last Name" 
+            required
+          >
+          <input 
+            type="number" 
+            id={`author-year-${i}`} 
+            value={author.year}
+            on:input={(e) => handleAuthorChange(e, i, 'year')}
+            placeholder="Year" 
+            min="1900" 
+            max="2100" 
+            required
+          >
           {#if i > 0}
-            <button type="button" class="remove-author" on:click={() => removeAuthor(i)} aria-label="Remove author">×</button>
+            <button 
+              type="button" 
+              class="remove-author" 
+              on:click={() => removeAuthor(i)} 
+              aria-label="Remove author"
+            >×</button>
           {/if}
         </div>
       {/each}
@@ -160,7 +234,14 @@
 
   <div class="form-group">
     <label for="reference-title">Title:</label>
-    <input type="text" id="reference-title" bind:value={title} placeholder="Enter Title" required>
+    <input 
+      type="text" 
+      id="reference-title" 
+      value={title}
+      on:input={handleTitleChange}
+      placeholder="Enter Title" 
+      required
+    >
   </div>
 
   <div class="form-group">
@@ -168,12 +249,19 @@
     <div id="publication-container" class="publication-fields">
       {#each publicationFields as field, i}
         <div class="publication-field">
-          <input type={field.type === 'url' ? 'url' : 'text'} 
-                 id={`publication-field-${i}`}
-                 bind:value={field.value} 
-                 placeholder={field.placeholder} 
-                 required>
-          <button type="button" class="remove-field" on:click={() => removePublicationField(i)}>×</button>
+          <input 
+            type={field.type === 'url' ? 'url' : 'text'} 
+            id={`publication-field-${i}`}
+            value={field.value}
+            on:input={(e) => handlePublicationFieldChange(e, i)}
+            placeholder={field.placeholder} 
+            required
+          >
+          <button 
+            type="button" 
+            class="remove-field" 
+            on:click={() => removePublicationField(i)}
+          >×</button>
         </div>
       {/each}
     </div>
@@ -198,8 +286,24 @@
   <div class="result-container">
     <h2>Generated Reference:</h2>
     <div class="reference-output">{referenceOutput}</div>
+    
+    {#if errors.length > 0}
+      <div class="error-messages">
+        {#each errors as error}
+          <p class="error">{error}</p>
+        {/each}
+      </div>
+    {/if}
+
     <div class="button-group">
-      <button class="save-button" on:click={saveReference}>Save Reference</button>
+      <button 
+        class="save-button" 
+        on:click={saveReference}
+        disabled={!isFormValid}
+        aria-label="Save reference"
+      >
+        Save Reference
+      </button>
     </div>
   </div>
 </div>
@@ -307,7 +411,11 @@
     border-radius: 4px;
     margin: 1rem 0;
     min-height: 50px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
     white-space: pre-wrap;
+    max-width: 100%;
+    overflow-x: auto;
   }
 
   .button-group {
@@ -357,5 +465,24 @@
   input:focus {
     outline: none;
     border-color: #6792ff;
+  }
+
+  .error-messages {
+    margin: 1rem 0;
+    padding: 0.5rem;
+    background-color: #fff3f3;
+    border: 1px solid #ffcdd2;
+    border-radius: 4px;
+  }
+
+  .error {
+    color: #d32f2f;
+    margin: 0.25rem 0;
+    font-size: 0.9rem;
+  }
+
+  .save-button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
   }
 </style> 
