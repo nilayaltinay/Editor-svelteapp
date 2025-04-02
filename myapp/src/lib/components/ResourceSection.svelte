@@ -5,7 +5,7 @@
     import Modal from "./modal.svelte";
     import ReferenceHelper from "./ReferenceHelper.svelte";
     import ConfirmationModal from "./ConfirmationModal.svelte";
-    import { XssSanitizer, HtmlSanitizer } from '$lib/services/sanitizers';
+    import { XssSanitizer } from '$lib/services/sanitizers';
 
     export let resource = {
         id: "",
@@ -48,6 +48,9 @@
     let showDeleteConfirmModal = false;
     let savedReferences = []; // Kaydedilen referansları tutacak array
     let errorMessage = ''; // Add error message state
+
+    let titleLength = 0;
+    let videoUrlLength = 0;
 
     function updateFeatureState(updates) {
         featureState = { ...featureState, ...updates };
@@ -104,6 +107,7 @@
             content: null,
         });
         errorMessage = ''; // Error state'i sıfırla
+        videoUrlLength = 0; // URL uzunluğunu sıfırla
 
         if (featureEditor) {
             featureEditor.setContents([]);
@@ -146,12 +150,22 @@
     }
 
     function extractVideoId(url) {
-        const match = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+        // Sadece alfanumerik karakterleri ve tire/alt çizgi karakterlerini kabul et
+        const match = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
         return match ? match[1] : null;
     }
 
     function createEmbedUrl(videoId) {
         return `https://www.youtube.com/embed/${videoId}`;
+    }
+
+    function cleanYouTubeUrl(url) {
+        // URL'den video ID'yi al
+        const videoId = extractVideoId(url);
+        if (!videoId) return null;
+        
+        // Temiz URL'yi oluştur
+        return `https://www.youtube.com/watch?v=${videoId}`;
     }
 
     function setError(message) {
@@ -180,31 +194,20 @@
             return;
         }
 
-        if (!isValidYouTubeUrl(featureState.url)) {
-            setError("Please enter a valid YouTube URL");
-            return;
-        }
-
         try {
-            const sanitizedUrl = XssSanitizer.sanitizeUrl(featureState.url);
-            if (!sanitizedUrl) {
-                setError("Invalid video URL");
+            const cleanUrl = cleanYouTubeUrl(featureState.url);
+            if (!cleanUrl) {
+                setError("Please enter a valid YouTube URL");
                 return;
             }
 
-            const videoId = extractVideoId(sanitizedUrl);
-            if (!videoId) {
-                setError("Could not extract video ID");
-                return;
-            }
-
+            const videoId = extractVideoId(cleanUrl);
             const embedUrl = createEmbedUrl(videoId);
-            updateVideoFeature(featureState.url, embedUrl);
+            updateVideoFeature(cleanUrl, embedUrl);
             clearError();
-            
         } catch (error) {
             console.error("Video embed error:", error);
-            setError("Error embedding video. Please try again.");
+            setError("Error processing video URL");
         }
     }
 
@@ -274,12 +277,21 @@
     // Form işlemleri için fonksiyonlar
     function handleTitleChange(event) {
         const sanitizedTitle = XssSanitizer.sanitize(event.target.value);
-        resource.title = sanitizedTitle;
+        const truncatedTitle = sanitizedTitle.slice(0, 100);
+        titleLength = truncatedTitle.length;
+        resource.title = truncatedTitle;
         dispatch("update", {
             id: resource.id,
             field: "title",
-            value: sanitizedTitle,
+            value: truncatedTitle,
         });
+    }
+
+    function handleVideoUrlChange(event) {
+        const url = event.target.value;
+        videoUrlLength = url.length;
+        featureState.url = url;
+        errorMessage = '';
     }
 
     onMount(() => {
@@ -520,6 +532,7 @@
                 <iframe
                     src={currentFeatureContent.data}
                     title="Embedded video content"
+                    sandbox="allow-scripts allow-same-origin allow-presentation"
                     allowFullscreen={true}
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     class="feature-video"
@@ -557,11 +570,13 @@
                                 class="feature-input"
                                 class:error={!!errorMessage}
                                 on:keydown={(e) => e.key === "Enter" && handleVideoEmbed()}
-                                on:input={() => errorMessage = ''}
+                                on:input={handleVideoUrlChange}
+                                maxlength="100"
                                 aria-label="YouTube video URL input"
                                 aria-invalid={!!errorMessage}
                                 aria-describedby={errorMessage ? `error-${resource.id}` : undefined}
                             />
+                            <span class="url-character-count">{videoUrlLength}/100</span>
                             {#if errorMessage}
                                 <div 
                                     id={`error-${resource.id}`}
@@ -596,15 +611,19 @@
 
         <div class="form-section">
             <h3>Title</h3>
-            <input
-                type="text"
-                id={`resource-title-${resource.id}`}
-                name={`resource-title-${resource.id}`}
-                value={resource.title}
-                on:input={handleTitleChange}
-                placeholder="Enter title"
-                class="title-input"
-            />
+            <div class="title-input-container">
+                <input
+                    type="text"
+                    id={`resource-title-${resource.id}`}
+                    name={`resource-title-${resource.id}`}
+                    value={resource.title}
+                    on:input={handleTitleChange}
+                    placeholder="Enter title"
+                    class="title-input"
+                    maxlength="100"
+                />
+                <span class="character-count">{titleLength}/100</span>
+            </div>
         </div>
 
         <div class="form-section">
@@ -710,6 +729,7 @@
     .title-input {
         width: 100%;
         padding: 0.5rem 1rem;
+        padding-right: 3.5rem; /* Karakter sayacı için sağ tarafta boşluk bırakıyoruz */
         border: 1px solid #ddd;
         border-radius: 1px;
         font-size: 1rem;
@@ -1160,12 +1180,12 @@
     .feature-input {
         flex: 1;
         padding: 8px 12px;
+        padding-right: 3.5rem; /* Karakter sayacı için sağ tarafta boşluk */
         border: 1px solid #e5e5e5;
         border-radius: 1px;
         font-size: 14px;
         width: 100%;
         transition: border-color 0.2s ease;
-
     }
 
     .feature-input.error {
@@ -1263,6 +1283,33 @@
         .error-message {
             bottom: -44px;
         }
+    }
+
+    .title-input-container {
+        position: relative;
+        width: 100%;
+    }
+
+    .character-count {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #666;
+        font-size: 12px;
+        pointer-events: none; 
+        user-select: none; 
+    }
+
+    .url-character-count {
+        position: absolute;
+        right: 45px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #666;
+        font-size: 12px;
+        pointer-events: none;
+        user-select: none;
     }
 
 </style>

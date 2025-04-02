@@ -168,7 +168,10 @@
 
   .page-container {
     max-width: 800px;
-    margin: 2rem auto;
+    margin: 0 auto;
+    padding: 2rem 0;
+    position: relative;
+
   }
 
   .add-resource-box {
@@ -180,7 +183,6 @@
     display: flex;
     justify-content: center;
     background: #FCFCFC;
-
   }
 
   .add-resource-btn {
@@ -216,6 +218,5 @@
     padding: 0.5rem 2rem;
     border: none;
     cursor: pointer;
-
   }
 </style>
