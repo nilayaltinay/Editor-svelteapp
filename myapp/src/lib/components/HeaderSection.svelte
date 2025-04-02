@@ -19,7 +19,7 @@
     .header {
         background-color: #1A5AFF;
         width: 100%;
-        margin-bottom: 2rem;
+        margin: 1rem 0 2rem 0;
     }
 
     .header-content {
@@ -31,7 +31,7 @@
     h1 {
         color: white;
         margin: 0;
-        font-size: 18px;
+        font-size: 16px;
         font-weight: 400;
         line-height: 1.2;
     }

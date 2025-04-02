@@ -66,11 +66,6 @@
         margin-bottom: 2rem;
     }
 
-    .modal-header h2 {
-        margin: 0;
-        font-size: 1.5rem;
-    }
-
     .close-button {
         position: absolute;
         right: 20px;

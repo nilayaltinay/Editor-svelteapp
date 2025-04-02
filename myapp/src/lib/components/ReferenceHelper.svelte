@@ -160,7 +160,7 @@
 
   <div class="form-group">
     <label for="reference-title">Title:</label>
-    <input type="text" id="reference-title" bind:value={title} required>
+    <input type="text" id="reference-title" bind:value={title} placeholder="Enter Title" required>
   </div>
 
   <div class="form-group">
@@ -207,16 +207,25 @@
 <style>
   
   *{
+    font-family: "Inter", "Lato Extended", "Lato", "Helvetica Neue", "Helvetica",
+    "Arial", "sans-serif";
+    box-sizing: border-box;
+    line-height: 1;
+    font-size: 14px;
+    font-weight: 300;
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    color: #333;
     
   }
-  .reference-helper {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
+  .reference-helper h2 {
+    font-weight: 600;
+    line-height: 1.2;
     color: #333;
-    line-height: 1.6;
   }
+
 
   .form-group {
     margin-bottom: 1.5rem;
@@ -231,10 +240,10 @@
 
   input, select {
     width: 100%;
-    padding: 0.8rem;
+    padding: 10px;
     border: 1px solid #ddd;
     border-radius: 4px;
-    font-size: 1rem;
+    font-size: 14px;
     outline: none;
   }
 

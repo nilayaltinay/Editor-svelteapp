@@ -159,8 +159,8 @@
 
 <style>
   * {
-    font-family: "Lato Extended", "Lato", "Helvetica Neue", "Helvetica", "Arial",
-      "sans-serif";
+    font-family: "Inter", "Lato Extended", "Lato", "Helvetica Neue", "Helvetica",
+    "Arial", "sans-serif";
     box-sizing: border-box;
     line-height: 1.6;
     font-size: 14px;
@@ -171,7 +171,7 @@
   .page-container {
     max-width: 800px;
     margin: 0 auto;
-    padding: 2rem 0;
+    padding: 0;
     position: relative;
 
   }

@@ -782,6 +782,10 @@
         padding: 0;
     }
 
+    :global(.ql-editor) {
+        padding: 0;
+    }
+
     :global(.ql-editor.ql-blank::before) {
         font-weight: 300;
         font-style: italic;
