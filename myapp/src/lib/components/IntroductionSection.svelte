@@ -157,6 +157,8 @@
       box-sizing: border-box;
       line-height: 1.6;
       font-size: 14px;
+      font-weight: 300;
+
     }
   
    

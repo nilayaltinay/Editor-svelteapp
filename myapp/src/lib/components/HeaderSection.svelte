@@ -13,6 +13,7 @@
         font-family: "Inter", "Lato Extended", "Lato", "Helvetica Neue", "Helvetica",
     "Arial", "sans-serif";
         box-sizing: border-box;
+        font-weight: 300;
     }
 
     .header {
