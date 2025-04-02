@@ -46,8 +46,11 @@
 
     let showReferenceModal = false;
     let showDeleteConfirmModal = false;
+    let showDeleteReferenceModal = false;
     let savedReferences = []; // Kaydedilen referansları tutacak array
     let errorMessage = ''; // Add error message state
+    let editingReferenceIndex = null; // Düzenlenen referansın index'i
+    let referenceToDeleteIndex = null; // Silinecek referansın index'i
 
     let titleLength = 0;
     let videoUrlLength = 0;
@@ -274,6 +277,34 @@
         showReferenceModal = false;
     }
 
+    function handleEditReference(index) {
+        editingReferenceIndex = index;
+        // Burada düzenleme modalını açabiliriz
+    }
+
+    function handleDeleteReference(index) {
+        referenceToDeleteIndex = index;
+        showDeleteReferenceModal = true;
+    }
+
+    function confirmDeleteReference() {
+        if (referenceToDeleteIndex !== null) {
+            savedReferences = savedReferences.filter((_, i) => i !== referenceToDeleteIndex);
+            resource.references = savedReferences;
+            dispatch("update", {
+                id: resource.id,
+                field: "references",
+                value: savedReferences,
+            });
+            closeDeleteReferenceModal();
+        }
+    }
+
+    function closeDeleteReferenceModal() {
+        showDeleteReferenceModal = false;
+        referenceToDeleteIndex = null;
+    }
+
     // Form işlemleri için fonksiyonlar
     function handleTitleChange(event) {
         const sanitizedTitle = XssSanitizer.sanitize(event.target.value);
@@ -438,12 +469,13 @@
         delete: `<svg width="16" height="16" viewBox="0 0 8 8" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M1.91663 7.75C1.68746 7.75 1.49128 7.6684 1.32808 7.50521C1.16489 7.34201 1.08329 7.14583 1.08329 6.91667V1.5H0.666626V0.666667H2.74996V0.25H5.24996V0.666667H7.33329V1.5H6.91663V6.91667C6.91663 7.14583 6.83503 7.34201 6.67183 7.50521C6.50864 7.6684 6.31246 7.75 6.08329 7.75H1.91663ZM6.08329 1.5H1.91663V6.91667H6.08329V1.5ZM2.74996 6.08333H3.58329V2.33333H2.74996V6.08333ZM4.41663 6.08333H5.24996V2.33333H4.41663V6.08333Z" fill="currentColor"/>
       </svg>`,
-
+        edit: `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12.854 1.146a.5.5 0 0 0-.707 0L11 2.293 13.707 5 14.854 3.854a.5.5 0 0 0 0-.707l-2-2zM11 2.293 9.293 4H4v-5h8v5.293L11 2.293zM4 5a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1H4z" fill="currentColor"/>
+        </svg>`,
         resize: ` <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M19 5L5 19M19 5H12M19 5V12M5 19H12M5 19V12" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
       `,
-
         expand: ` <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="9" cy="6" r="1.5" fill="currentColor"/>
                 <circle cx="15" cy="6" r="1.5" fill="currentColor"/>
@@ -459,15 +491,12 @@
         arrowDown: `<svg width="7" height="7" viewBox="0 0 7 7" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M3.95676 -2.15755e-07L3.95676 4.95385L5.99162 3.01538L6.78296 3.76923L3.39152 7L8.09089e-05 3.76923L0.791417 3.01538L2.82628 4.95385L2.82628 -3.02057e-07L3.95676 -2.15755e-07Z" fill="currentColor"/>
               </svg>`,
-
         fileUpload: `<svg width="12" height="15" viewBox="0 0 12 15" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M5.25 12.75H6.75V9.61875L7.95 10.8188L9 9.75L6 6.75L3 9.75L4.06875 10.8L5.25 9.61875V12.75ZM1.5 15C1.0875 15 0.734375 14.8531 0.440625 14.5594C0.146875 14.2656 0 13.9125 0 13.5V1.5C0 1.0875 0.146875 0.734375 0.440625 0.440625C0.734375 0.146875 1.0875 0 1.5 0H7.5L12 4.5V13.5C12 13.9125 11.8531 14.2656 11.5594 14.5594C11.2656 14.8531 10.9125 15 10.5 15H1.5ZM6.75 5.25V1.5H1.5V13.5H10.5V5.25H6.75Z" fill="currentColor"/>
                 </svg>`,
-
         link: `<svg width="14" height="7" viewBox="0 0 14 7" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M6.3 7H3.5C2.53167 7 1.70625 6.65875 1.02375 5.97625C0.34125 5.29375 0 4.46833 0 3.5C0 2.53167 0.34125 1.70625 1.02375 1.02375C1.70625 0.34125 2.53167 0 3.5 0H6.3V1.4H3.5C2.91667 1.4 2.42083 1.60417 2.0125 2.0125C1.60417 2.42083 1.4 2.91667 1.4 3.5C1.4 4.08333 1.60417 4.57917 2.0125 4.9875C2.42083 5.39583 2.91667 5.6 3.5 5.6H6.3V7ZM4.2 4.2V2.8H9.8V4.2H4.2ZM7.7 7V5.6H10.5C11.0833 5.6 11.5792 5.39583 11.9875 4.9875C12.3958 4.57917 12.6 4.08333 12.6 3.5C12.6 2.91667 12.3958 2.42083 11.9875 2.0125C11.5792 1.60417 11.0833 1.4 10.5 1.4H7.7V0H10.5C11.4683 0 12.2937 0.34125 12.9762 1.02375C13.6588 1.70625 14 2.53167 14 3.5C14 4.46833 13.6588 5.29375 12.9762 5.97625C12.2937 6.65875 11.4683 7 10.5 7H7.7Z" fill="currentColor"/>
             </svg>`,
-
         featureCancel: `<svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path d="M3.84 3L6 5.16L8.16 3L9 3.84L6.84 6L9 8.16L8.16 9L6 6.84L3.84 9L3 8.16L5.16 6L3 3.84L3.84 3ZM6 0C5.17 0 4.39 0.1575 3.66 0.4725C2.93 0.7875 2.295 1.215 1.755 1.755C1.215 2.295 0.7875 2.93 0.4725 3.66C0.1575 4.39 0 5.17 0 6C0 6.83 0.1575 7.61 0.4725 8.34C0.7875 9.07 1.215 9.705 1.755 10.245C2.295 10.785 2.93 10.785 3.66 11.5275C4.39 11.8425 5.17 12 6 12C6.83 12 7.61 11.8425 8.34 11.5275C9.07 11.2125 9.705 10.785 10.245 10.245C10.785 9.705 11.2125 9.07 11.5275 8.34C11.8425 7.61 12 6.83 12 6C12 5.17 11.8425 4.39 11.5275 3.66C11.2125 2.93 10.785 2.295 10.245 1.755C9.705 1.215 9.07 0.7875 8.34 0.4725C7.61 0.1575 6.83 0 6 0ZM6 1.2C7.34 1.2 8.475 1.665 9.405 2.595C10.335 3.525 10.8 4.66 10.8 6C10.8 7.34 10.335 8.475 9.405 9.405C8.475 10.335 7.34 10.8 6 10.8C4.66 10.8 3.525 10.335 2.595 9.405C1.665 8.475 1.2 7.34 1.2 6C1.2 4.66 1.665 3.525 2.595 2.595C3.525 1.665 4.66 1.2 6 1.2Z" fill="#5F5F5F"/>
                       </svg>`,
@@ -653,12 +682,28 @@
         </div>
 
         <div class="form-section">
-            <h3>References</h3>
+            <h3>Reference</h3>
             {#if savedReferences.length > 0}
                 <div class="references-container">
-                    {#each savedReferences as reference}
+                    {#each savedReferences as reference, index}
                         <div class="reference-item">
                             <p>{reference}</p>
+                            <div class="reference-actions">
+                                <button 
+                                    class="action-btn edit-btn"
+                                    on:click={() => handleEditReference(index)}
+                                    aria-label="Edit reference"
+                                >
+                                    {@html icons.edit}
+                                </button>
+                                <button 
+                                    class="action-btn delete-btn"
+                                    on:click={() => handleDeleteReference(index)}
+                                    aria-label="Delete reference"
+                                >
+                                    {@html icons.delete}
+                                </button>
+                            </div>
                         </div>
                     {/each}
                 </div>
@@ -691,6 +736,14 @@
     content={resource.title || "Untitled resource"}
     onConfirm={confirmDelete}
     onCancel={closeDeleteConfirmModal}
+/>
+
+<ConfirmationModal
+    show={showDeleteReferenceModal}
+    type="deleteReference"
+    content={savedReferences[referenceToDeleteIndex] || "Reference"}
+    onConfirm={confirmDeleteReference}
+    onCancel={closeDeleteReferenceModal}
 />
 
 <style>
@@ -1293,6 +1346,11 @@
     .reference-item {
         padding: 1rem;
         border-bottom: 1px solid #e5e5e5;
+        position: relative;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 1rem;
     }
 
     .reference-item:last-child {
@@ -1304,6 +1362,41 @@
         color: #2c3e50;
         font-size: 14px;
         line-height: 1.6;
+        flex: 1;
+    }
+
+    .reference-actions {
+        display: flex;
+        gap: 8px;
+
+        transition: opacity 0.2s ease;
+    }
+
+
+
+    .action-btn {
+        background: none;
+        border: none;
+        padding: 4px;
+        cursor: pointer;
+        color: #666;
+        transition: color 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 4px;
+    }
+
+    .action-btn:hover {
+        background: #f5f5f5;
+    }
+
+    .edit-btn:hover {
+        color: #6792ff;
+    }
+
+    .delete-btn:hover {
+        color: #ff5656;
     }
 
     .error-message {

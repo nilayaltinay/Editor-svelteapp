@@ -35,6 +35,13 @@
             confirmText: 'Delete',
             confirmButtonClass: 'btn-danger',
             cancelText: 'Cancel'
+        },
+        deleteReference:{
+            title: 'Delete Reference',
+            subtitle: '',
+            confirmText: 'Delete',
+            confirmButtonClass: 'btn-danger',
+            cancelText: 'Cancel'
         }
     };
 
