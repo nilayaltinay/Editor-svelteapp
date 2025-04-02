@@ -728,16 +728,28 @@
 
     .title-input {
         width: 100%;
-        padding: 0.5rem 1rem;
-        padding-right: 3.5rem; /* Karakter sayacı için sağ tarafta boşluk bırakıyoruz */
-        border: 1px solid #ddd;
+        padding: 8px 12px;
+        padding-right: 3.5rem;
+        border: 1px solid #e5e5e5;
         border-radius: 1px;
-        font-size: 1rem;
+        font-size: 14px;
         box-sizing: border-box;
+        height: 40px;
+        line-height: 24px;
+    }
+
+    .title-input::placeholder {
+
+        font-weight: 300;
+        font-style: italic;
+        line-height: 150%;
+        letter-spacing: -1.1%;
+        color: #949494;
     }
 
     .title-input:focus {
         outline: none;
+        border-color: #6792ff;
     }
 
     .description-container {
@@ -767,6 +779,14 @@
 
     :global(.ql-editor.ql-blank) {
         padding: 0;
+    }
+
+    :global(.ql-editor.ql-blank::before) {
+        font-weight: 300;
+        font-style: italic;
+        line-height: 150%;
+        letter-spacing: -1.1%;
+        color: #949494;
     }
 
     .resource-section .delete-btn {
@@ -1107,7 +1127,7 @@
         align-items: center;
         gap: 0.5rem;
         margin-bottom: 1rem;
-        min-height: 40px; /* Sabit yükseklik ekledim ki içerik değişirken sıçrama olmasın */
+        min-height: 40px;
     }
 
     /* Feature controls toolbar styles */
@@ -1119,11 +1139,14 @@
         display: flex;
         align-items: center;
         width: fit-content;
+        height: 40px;
     }
 
     .feature-controls :global(.ql-toolbar .ql-formats) {
         display: flex;
         margin: 0;
+        height: 100%;
+        align-items: center;
     }
 
     .feature-controls :global(.ql-toolbar button) {
@@ -1175,17 +1198,21 @@
         border-radius: 1px;
         flex: 1;
         background: white;
+        height: 40px;
+        line-height: 24px;
     }
 
     .feature-input {
         flex: 1;
         padding: 8px 12px;
-        padding-right: 3.5rem; /* Karakter sayacı için sağ tarafta boşluk */
+        padding-right: 3.5rem;
         border: 1px solid #e5e5e5;
         border-radius: 1px;
         font-size: 14px;
         width: 100%;
         transition: border-color 0.2s ease;
+        height: 40px;
+        line-height: 24px;
     }
 
     .feature-input.error {
@@ -1193,7 +1220,11 @@
     }
 
     .feature-input::placeholder {
+        font-weight: 300;
         font-style: italic;
+        line-height: 150%;
+        letter-spacing: -1.1%;
+        color: #949494;
     }
 
     .feature-input:focus {
@@ -1299,6 +1330,7 @@
         font-size: 12px;
         pointer-events: none; 
         user-select: none; 
+        font-weight: 300;
     }
 
     .url-character-count {
@@ -1310,6 +1342,18 @@
         font-size: 12px;
         pointer-events: none;
         user-select: none;
+        font-weight: 300;
+    }
+
+    /* Quill base styles override */
+    :global(.ql-snow .ql-picker) {
+        color: #444;
+        display: inline-block;
+        font-size: 14px;
+        font-weight: 300;
+        height: 24px;
+        position: relative;
+        vertical-align: middle;
     }
 
 </style>
