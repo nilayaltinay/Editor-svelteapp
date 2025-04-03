@@ -4,6 +4,7 @@
     export let show = false;
     export let type = 'publish'; // 'publish' | 'cancel' | 'delete'
     export let content = ''; // Custom content to show below title
+    export let isHtml = false; // Whether content should be rendered as HTML
     export let onConfirm = () => {};
     export let onCancel = () => {};
     
@@ -57,7 +58,11 @@
                 <p class="confirm-subtitle">{modalConfig.subtitle}</p>
             {/if}
             {#if content}
-                <p class="confirm-content">{content}</p>
+                {#if isHtml}
+                    <p class="confirm-content" bind:innerHTML={content} contenteditable="false"></p>
+                {:else}
+                    <p class="confirm-content">{content}</p>
+                {/if}
             {/if}
         </div>
         <div class="confirm-actions">
@@ -101,7 +106,7 @@
         overflow: hidden;
         display: flex;
         flex-direction: column;
-        padding: 2rem 5rem;
+        padding: 2rem;
     }
 
     .confirm-header {
@@ -128,6 +133,24 @@
         color: #555;
         margin: 1rem 0 0 0;
         font-style: italic;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        max-width: 100%;
+    }
+
+    .confirm-content :global(a) {
+        color: #6792ff;
+        text-decoration: none;
+        transition: color 0.3s ease;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        display: inline-block;
+        max-width: 100%;
+    }
+
+    .confirm-content :global(a:hover) {
+        color: #4a6cd4;
+        text-decoration: underline;
     }
 
     .confirm-actions {

@@ -4,6 +4,20 @@
   import XssSanitizer from '$lib/services/sanitizers/XssSanitizer';
   const dispatch = createEventDispatcher();
 
+  function isValidUrl(url) {
+    try {
+      new URL(url);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  function sanitizeUrl(url) {
+    if (!isValidUrl(url)) return '';
+    return XssSanitizer.sanitize(url);
+  }
+
   export let isEditing = false;
   export let reference = null;
 
@@ -49,9 +63,17 @@
   }
 
   function handlePublicationFieldChange(event, index) {
-    const sanitizedValue = XssSanitizer.sanitize(event.target.value);
-    publicationFields = publicationFields.map((field, i) => 
-      i === index ? { ...field, value: sanitizedValue } : field
+    const value = event.target.value;
+    const field = publicationFields[index];
+    
+    let sanitizedValue = XssSanitizer.sanitize(value);
+    
+    if (field.type === 'url') {
+      sanitizedValue = sanitizeUrl(value);
+    }
+    
+    publicationFields = publicationFields.map((f, i) => 
+      i === index ? { ...f, value: sanitizedValue } : f
     );
   }
 
@@ -141,21 +163,21 @@
     if (info.volume) reference += `, ${info.volume}`;
     if (info.issue) reference += `(${info.issue})`;
     if (info.pages) reference += `, ${info.pages}`;
-    if (info.doi) reference += `. https://doi.org/${info.doi}`;
+    if (info.doi) reference += `. <a href="https://doi.org/${info.doi}" target="_blank" rel="noopener noreferrer">https://doi.org/${info.doi}</a>`;
     return reference + '.';
   }
 
   function formatWebsiteReference(authors, title, info) {
     let reference = `${authors}. ${title}.`;
     if (info.publisher) reference += ` ${info.publisher}`;
-    if (info.url) reference += ` ${info.url}`;
+    if (info.url) reference += ` <a href="${info.url}" target="_blank" rel="noopener noreferrer">${info.url}</a>`;
     return reference + '.';
   }
 
   function formatNewspaperReference(authors, title, info) {
     let reference = `${authors}. ${title}.`;
     if (info.publisher) reference += ` ${info.publisher}`;
-    if (info.url) reference += ` ${info.url}`;
+    if (info.url) reference += ` <a href="${info.url}" target="_blank" rel="noopener noreferrer">${info.url}</a>`;
     return reference + '.';
   }
 
@@ -314,7 +336,11 @@
 
   <div class="result-container">
     <h2>Generated Reference:</h2>
-    <div class="reference-output">{referenceOutput}</div>
+    <div 
+      class="reference-output" 
+      bind:innerHTML={referenceOutput}
+      contenteditable="false"
+    ></div>
     
     {#if errors.length > 0}
       <div class="error-messages">

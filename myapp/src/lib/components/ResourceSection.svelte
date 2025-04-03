@@ -495,8 +495,15 @@
         <path d="M1.91663 7.75C1.68746 7.75 1.49128 7.6684 1.32808 7.50521C1.16489 7.34201 1.08329 7.14583 1.08329 6.91667V1.5H0.666626V0.666667H2.74996V0.25H5.24996V0.666667H7.33329V1.5H6.91663V6.91667C6.91663 7.14583 6.83503 7.34201 6.67183 7.50521C6.50864 7.6684 6.31246 7.75 6.08329 7.75H1.91663ZM6.08329 1.5H1.91663V6.91667H6.08329V1.5ZM2.74996 6.08333H3.58329V2.33333H2.74996V6.08333ZM4.41663 6.08333H5.24996V2.33333H4.41663V6.08333Z" fill="currentColor"/>
       </svg>`,
         edit: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.05c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" fill="currentColor"/>
-        </svg>`,
+            <g clip-path="url(#clip0_76_4984)">
+              <path d="M3 17.25V21H6.75L17.81 9.94L14.06 6.19L3 17.25ZM20.71 7.04C21.1 6.65 21.1 6.02 20.71 5.63L18.37 3.29C17.98 2.9 17.35 2.9 16.96 3.29L15.13 5.12L18.88 8.87L20.71 7.04Z" fill="currentColor"/>
+            </g>
+            <defs>
+              <clipPath id="clip0_76_4984">
+                <rect width="24" height="24" fill="white"/>
+              </clipPath>
+            </defs>
+          </svg>`,
         resize: ` <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M19 5L5 19M19 5H12M19 5V12M5 19H12M5 19V12" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
@@ -714,7 +721,7 @@
                 <div class="references-container">
                     {#each savedReferences as reference, index}
                         <div class="reference-item">
-                            <p>{reference.text}</p>
+                            <p bind:innerHTML={reference.text} contenteditable="false"></p>
                             <div class="reference-actions">
                                 <button 
                                     class="action-btn edit-btn"
@@ -773,6 +780,7 @@
     show={showDeleteReferenceModal}
     type="deleteReference"
     content={savedReferences[referenceToDeleteIndex]?.text || "Reference"}
+    isHtml={true}
     onConfirm={confirmDeleteReference}
     onCancel={closeDeleteReferenceModal}
 />
@@ -1380,7 +1388,7 @@
         position: relative;
         display: flex;
         justify-content: space-between;
-        align-items: flex-start;
+        align-items: center;
         gap: 1rem;
     }
 
@@ -1396,14 +1404,22 @@
         flex: 1;
     }
 
-    .reference-actions {
-        display: flex;
-        gap: 8px;
-
-        transition: opacity 0.2s ease;
+    .reference-item p :global(a) {
+        color: #6792ff;
+        text-decoration: none;
+        transition: color 0.3s ease;
     }
 
+    .reference-item p :global(a:hover) {
+        color: #4a6cd4;
+        text-decoration: underline;
+    }
 
+    .reference-actions {
+        display: flex;
+        align-self: center;
+        transition: opacity 0.2s ease;
+    }
 
     .action-btn {
         background: none;
@@ -1416,6 +1432,8 @@
         align-items: center;
         justify-content: center;
         border-radius: 4px;
+        width: 24px;
+        height: 24px;
     }
 
     .action-btn:hover {
@@ -1423,7 +1441,7 @@
     }
 
     .edit-btn:hover {
-        color: #6792ff;
+        color: #1A5AFF;
     }
 
     .delete-btn:hover {
