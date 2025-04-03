@@ -494,8 +494,8 @@
         delete: `<svg width="16" height="16" viewBox="0 0 8 8" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M1.91663 7.75C1.68746 7.75 1.49128 7.6684 1.32808 7.50521C1.16489 7.34201 1.08329 7.14583 1.08329 6.91667V1.5H0.666626V0.666667H2.74996V0.25H5.24996V0.666667H7.33329V1.5H6.91663V6.91667C6.91663 7.14583 6.83503 7.34201 6.67183 7.50521C6.50864 7.6684 6.31246 7.75 6.08329 7.75H1.91663ZM6.08329 1.5H1.91663V6.91667H6.08329V1.5ZM2.74996 6.08333H3.58329V2.33333H2.74996V6.08333ZM4.41663 6.08333H5.24996V2.33333H4.41663V6.08333Z" fill="currentColor"/>
       </svg>`,
-        edit: `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12.854 1.146a.5.5 0 0 0-.707 0L11 2.293 13.707 5 14.854 3.854a.5.5 0 0 0 0-.707l-2-2zM11 2.293 9.293 4H4v-5h8v5.293L11 2.293zM4 5a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1H4z" fill="currentColor"/>
+        edit: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.05c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" fill="currentColor"/>
         </svg>`,
         resize: ` <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M19 5L5 19M19 5H12M19 5V12M5 19H12M5 19V12" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
@@ -615,6 +615,7 @@
                         out:fade={{ duration: 150 }}
                     >
                         {#if showVideoInput}
+                            <label for={`feature-url-${resource.id}`} class="sr-only">YouTube Video URL</label>
                             <input
                                 type="url"
                                 id={`feature-url-${resource.id}`}
@@ -666,6 +667,7 @@
         <div class="form-section">
             <h3>Title</h3>
             <div class="title-input-container">
+                <label for={`resource-title-${resource.id}`} class="sr-only">Resource Title</label>
                 <input
                     type="text"
                     id={`resource-title-${resource.id}`}
@@ -1481,6 +1483,18 @@
         height: 24px;
         position: relative;
         vertical-align: middle;
+    }
+
+    .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
     }
 
 </style>

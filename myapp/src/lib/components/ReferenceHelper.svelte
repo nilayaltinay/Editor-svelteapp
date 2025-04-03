@@ -205,6 +205,8 @@
       bind:value={resourceType}
       on:change={handleResourceTypeChange}
       required
+      aria-label="Select a resource type"
+      aria-required="true"
     >
       <option value="">Select a resource type</option>
       <option value="book">Book</option>
