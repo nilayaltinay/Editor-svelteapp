@@ -42,15 +42,13 @@ class BaseSanitizer {
     static escapeHtml(input) {
         if (!this.isString(input)) return '';
         
-        const htmlEntities = {
-            '&': '&amp;',
+        // Sadece gerçekten tehlikeli olan karakterleri escape et
+        const dangerousChars = {
             '<': '&lt;',
-            '>': '&gt;',
-            '"': '&quot;',
-            "'": '&#039;'
+            '>': '&gt;'
         };
         
-        return input.replace(/[&<>"']/g, char => htmlEntities[char]);
+        return input.replace(/[<>]/g, char => dangerousChars[char]);
     }
 
     /**

@@ -148,14 +148,14 @@
   function formatWebsiteReference(authors, title, info) {
     let reference = `${authors}. ${title}.`;
     if (info.publisher) reference += ` ${info.publisher}`;
-    if (info.url) reference += `. ${info.url}`;
+    if (info.url) reference += ` ${info.url}`;
     return reference + '.';
   }
 
   function formatNewspaperReference(authors, title, info) {
     let reference = `${authors}. ${title}.`;
     if (info.publisher) reference += ` ${info.publisher}`;
-    if (info.url) reference += `. ${info.url}`;
+    if (info.url) reference += ` ${info.url}`;
     return reference + '.';
   }
 
@@ -202,6 +202,7 @@
     <label for="resource-type">Resource Type:</label>
     <select 
       id="resource-type" 
+      bind:value={resourceType}
       on:change={handleResourceTypeChange}
       required
     >

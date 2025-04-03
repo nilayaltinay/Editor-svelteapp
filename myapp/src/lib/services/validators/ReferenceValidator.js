@@ -51,7 +51,7 @@ export class ReferenceValidator {
       errors.push('Please enter a title');
     } else {
       // Title length check
-      if (title.trim().length < 10) {
+      if (title.trim().length < 3) {
         errors.push('Title must be at least 3 characters long');
       }
       if (title.trim().length > 500) {
