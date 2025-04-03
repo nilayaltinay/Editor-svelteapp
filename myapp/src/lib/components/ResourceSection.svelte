@@ -51,6 +51,7 @@
     let errorMessage = ''; // Add error message state
     let editingReferenceIndex = null; // Düzenlenen referansın index'i
     let referenceToDeleteIndex = null; // Silinecek referansın index'i
+    let isEditing = false; // Düzenleme modunda olup olmadığımızı belirten flag
 
     let titleLength = 0;
     let videoUrlLength = 0;
@@ -129,6 +130,8 @@
     }
 
     function openReferenceModal() {
+        isEditing = false;
+        editingReferenceIndex = null;
         showReferenceModal = true;
     }
 
@@ -265,21 +268,43 @@
         }
     }
 
+    function handleEditReference(index) {
+        editingReferenceIndex = index;
+        isEditing = true;
+        showReferenceModal = true;
+    }
+
     function handleSaveReference(event) {
         const reference = event.detail.reference;
-        savedReferences = [...savedReferences, reference];
+        const formData = event.detail.formData; // Yeni form verilerini al
+        
+        if (isEditing && editingReferenceIndex !== null) {
+            // Mevcut referansı güncelle
+            savedReferences = savedReferences.map((ref, i) => 
+                i === editingReferenceIndex ? {
+                    text: reference,
+                    formData: formData
+                } : ref
+            );
+        } else {
+            // Yeni referans ekle
+            savedReferences = [...savedReferences, {
+                text: reference,
+                formData: formData
+            }];
+        }
+
         resource.references = savedReferences;
         dispatch("update", {
             id: resource.id,
             field: "references",
             value: savedReferences,
         });
+        
+        // State'i sıfırla
         showReferenceModal = false;
-    }
-
-    function handleEditReference(index) {
-        editingReferenceIndex = index;
-        // Burada düzenleme modalını açabiliriz
+        isEditing = false;
+        editingReferenceIndex = null;
     }
 
     function handleDeleteReference(index) {
@@ -687,7 +712,7 @@
                 <div class="references-container">
                     {#each savedReferences as reference, index}
                         <div class="reference-item">
-                            <p>{reference}</p>
+                            <p>{reference.text}</p>
                             <div class="reference-actions">
                                 <button 
                                     class="action-btn edit-btn"
@@ -717,7 +742,11 @@
             bind:showModal={showReferenceModal}
             title="APA 7th Reference Generator"
         >
-            <ReferenceHelper on:save={handleSaveReference} />
+            <ReferenceHelper 
+                on:save={handleSaveReference}
+                {isEditing}
+                reference={isEditing ? savedReferences[editingReferenceIndex] : null}
+            />
         </Modal>
     </div>
     <button
@@ -741,7 +770,7 @@
 <ConfirmationModal
     show={showDeleteReferenceModal}
     type="deleteReference"
-    content={savedReferences[referenceToDeleteIndex] || "Reference"}
+    content={savedReferences[referenceToDeleteIndex]?.text || "Reference"}
     onConfirm={confirmDeleteReference}
     onCancel={closeDeleteReferenceModal}
 />

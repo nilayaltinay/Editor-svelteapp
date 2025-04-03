@@ -4,6 +4,9 @@
   import XssSanitizer from '$lib/services/sanitizers/XssSanitizer';
   const dispatch = createEventDispatcher();
 
+  export let isEditing = false;
+  export let reference = null;
+
   let resourceType = '';
   let title = '';
   let authors = [{
@@ -15,6 +18,19 @@
   let referenceOutput = '';
   let errors = [];
   let isFormValid = false;
+
+  // Düzenleme modunda form verilerini doldur
+  $: if (isEditing && reference?.formData) {
+    const { formData } = reference;
+    resourceType = formData.resourceType || '';
+    title = formData.title || '';
+    authors = formData.authors || [{
+      firstName: '',
+      lastName: '',
+      year: ''
+    }];
+    publicationFields = formData.publicationFields || [];
+  }
 
   // Input sanitization handlers
   function handleResourceTypeChange(event) {
@@ -160,7 +176,17 @@
     if (!validateForm()) {
       return;
     }
-    dispatch('save', { reference: referenceOutput });
+
+    // Form verilerini de gönder
+    dispatch('save', { 
+      reference: referenceOutput,
+      formData: {
+        resourceType,
+        title,
+        authors,
+        publicationFields
+      }
+    });
   }
 
   $: {
