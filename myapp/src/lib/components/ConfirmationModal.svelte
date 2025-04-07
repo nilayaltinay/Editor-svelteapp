@@ -1,86 +1,107 @@
 <script>
-    import { fade } from 'svelte/transition';
-    
-    export let show = false;
-    export let type = 'publish'; // 'publish' | 'cancel' | 'delete'
-    export let content = ''; // Custom content to show below title
+    import { fade } from "svelte/transition";
+
+    export let show = false; //Controls modal visibility
+    export let type = "publish"; //Modal type: 'publish' | 'cancel' | 'delete' | 'deleteIntroduction' | 'deleteReference'
+    export let content = ""; // Custom custom content to display below title
     export let isHtml = false; // Whether content should be rendered as HTML
-    export let onConfirm = () => {};
-    export let onCancel = () => {};
-    
+    export let onConfirm = () => {}; //Callback function when confirm button is clicked
+    export let onCancel = () => {}; //Callback function when cancel button is clicked
+
+    /**
+     * Modal Configuration Presets
+     * Each preset contains:
+     * - title: Modal header text
+     * - subtitle: Additional context text below title
+     * - confirmText: Text for confirm button
+     * - confirmButtonClass: CSS class for confirm button styling
+     * - cancelText: Text for cancel button
+     */
     const MODAL_PRESETS = {
         publish: {
-            title: 'Save and publish page',
-            subtitle: 'Module 3 Resources',
-            confirmText: 'Publish',
-            confirmButtonClass: 'btn-success',
-            cancelText: 'Cancel'
+            title: "Save and publish page",
+            subtitle: "Module 3 Resources",
+            confirmText: "Publish",
+            confirmButtonClass: "btn-success",
+            cancelText: "Cancel",
         },
         cancel: {
-            title: 'Cancel and return home',
-            subtitle: 'You will lose any unsaved changes',
-            confirmText: 'Confirm',
-            confirmButtonClass: 'btn-danger',
-            cancelText: 'Cancel'
+            title: "Cancel and return home",
+            subtitle: "You will lose any unsaved changes",
+            confirmText: "Confirm",
+            confirmButtonClass: "btn-danger",
+            cancelText: "Cancel",
         },
         delete: {
-            title: 'Delete resource',
-            subtitle: '',
-            confirmText: 'Delete',
-            confirmButtonClass: 'btn-danger',
-            cancelText: 'Cancel'
+            title: "Delete resource",
+            subtitle: "",
+            confirmText: "Delete",
+            confirmButtonClass: "btn-danger",
+            cancelText: "Cancel",
         },
         deleteIntroduction: {
-            title: 'Delete Introduction',
-            subtitle: 'You will lose Introduction of the Resource Page',
-            confirmText: 'Delete',
-            confirmButtonClass: 'btn-danger',
-            cancelText: 'Cancel'
+            title: "Delete Introduction",
+            subtitle: "You will lose Introduction of the Resource Page",
+            confirmText: "Delete",
+            confirmButtonClass: "btn-danger",
+            cancelText: "Cancel",
         },
-        deleteReference:{
-            title: 'Delete Reference',
-            subtitle: '',
-            confirmText: 'Delete',
-            confirmButtonClass: 'btn-danger',
-            cancelText: 'Cancel'
-        }
+        deleteReference: {
+            title: "Delete Reference",
+            subtitle: "",
+            confirmText: "Delete",
+            confirmButtonClass: "btn-danger",
+            cancelText: "Cancel",
+        },
     };
 
+    //Reactive statement to update modal configuration based on type prop
     $: modalConfig = MODAL_PRESETS[type];
 </script>
 
+<!-- Modal Container - Only shown when 'show' prop is true -->
 {#if show}
-<div class="confirm-backdrop" transition:fade={{ duration: 150 }}>
-    <div class="confirm-modal" transition:fade={{ duration: 200 }}>
-        <div class="confirm-header">
-            <h2 class="confirm-title">{modalConfig.title}</h2>
-            {#if modalConfig.subtitle}
-                <p class="confirm-subtitle">{modalConfig.subtitle}</p>
-            {/if}
-            {#if content}
-                {#if isHtml}
-                    <p class="confirm-content" bind:innerHTML={content} contenteditable="false"></p>
-                {:else}
-                    <p class="confirm-content">{content}</p>
+    <div class="confirm-backdrop" transition:fade={{ duration: 150 }}>
+        <div class="confirm-modal" transition:fade={{ duration: 200 }}>
+            <!-- Modal Header Section -->
+            <div class="confirm-header">
+                <h2 class="confirm-title">{modalConfig.title}</h2>
+                {#if modalConfig.subtitle}
+                    <p class="confirm-subtitle">{modalConfig.subtitle}</p>
                 {/if}
-            {/if}
-        </div>
-        <div class="confirm-actions">
-            <button class="cancel-btn" on:click={onCancel}>
-                {modalConfig.cancelText}
-            </button>
-            <button class={`confirm-btn ${modalConfig.confirmButtonClass}`} on:click={onConfirm}>
-                {modalConfig.confirmText}
-            </button>
+                <!-- Custom Content Section - Supports HTML or plain text -->
+                {#if content}
+                    {#if isHtml}
+                        <p
+                            class="confirm-content"
+                            bind:innerHTML={content}
+                            contenteditable="false"
+                        ></p>
+                    {:else}
+                        <p class="confirm-content">{content}</p>
+                    {/if}
+                {/if}
+            </div>
+            <!-- Modal Action Buttons -->
+            <div class="confirm-actions">
+                <button class="cancel-btn" on:click={onCancel}>
+                    {modalConfig.cancelText}
+                </button>
+                <button
+                    class={`confirm-btn ${modalConfig.confirmButtonClass}`}
+                    on:click={onConfirm}
+                >
+                    {modalConfig.confirmText}
+                </button>
+            </div>
         </div>
     </div>
-</div>
 {/if}
 
 <style>
     * {
-        font-family: "Inter", "Lato Extended", "Lato", "Helvetica Neue", "Helvetica",
-    "Arial", "sans-serif";
+        font-family: "Inter", "Lato Extended", "Lato", "Helvetica Neue",
+            "Helvetica", "Arial", "sans-serif";
         box-sizing: border-box;
         line-height: 1.6;
         font-size: 14px;
@@ -159,7 +180,8 @@
         justify-content: center;
     }
 
-    .cancel-btn, .confirm-btn {
+    .cancel-btn,
+    .confirm-btn {
         padding: 4px 24px;
         border: none;
         font-size: 14px;

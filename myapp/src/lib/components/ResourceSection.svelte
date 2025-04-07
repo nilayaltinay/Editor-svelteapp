@@ -5,7 +5,7 @@
     import Modal from "./modal.svelte";
     import ReferenceHelper from "./ReferenceHelper.svelte";
     import ConfirmationModal from "./ConfirmationModal.svelte";
-    import { XssSanitizer } from '$lib/services/sanitizers';
+    import { XssSanitizer } from "$lib/services/sanitizers";
 
     export let resource = {
         id: "",
@@ -16,7 +16,7 @@
     };
     export let index = 0;
 
-    // Props değiştiğinde log'la
+    // Logs changes to resource props
     $: console.log("ResourceSection props:", { resource, index });
 
     const dispatch = createEventDispatcher();
@@ -47,11 +47,11 @@
     let showReferenceModal = false;
     let showDeleteConfirmModal = false;
     let showDeleteReferenceModal = false;
-    let savedReferences = []; // Kaydedilen referansları tutacak array
-    let errorMessage = ''; // Add error message state
-    let editingReferenceIndex = null; // Düzenlenen referansın index'i
-    let referenceToDeleteIndex = null; // Silinecek referansın index'i
-    let isEditing = false; // Düzenleme modunda olup olmadığımızı belirten flag
+    let savedReferences = []; // Array to store saved references
+    let errorMessage = ""; // Add error message state
+    let editingReferenceIndex = null; // Index of the reference being edited
+    let referenceToDeleteIndex = null; // Index of the reference to be deleted
+    let isEditing = false; // Flag indicating if we are in edit mode
 
     let titleLength = 0;
     let videoUrlLength = 0;
@@ -69,10 +69,10 @@
     }
 
     function prepareForNewContent(type = "none") {
-        // Mevcut içeriği temizle
+        // Clear existing content
         resetFeatureContent();
 
-        // Video input için özel durum
+        // Special case for video input
         if (type === "video") {
             updateFeatureState({
                 showInput: true,
@@ -81,7 +81,7 @@
     }
 
     function updateFeatureContent(editor) {
-        // Sadece video veya resim eklendiğinde çalışsın
+        // Only run when video or image is added
         const img = editor.root.querySelector("img");
         const iframe = editor.root.querySelector("iframe.ql-video");
 
@@ -110,8 +110,8 @@
             url: "",
             content: null,
         });
-        errorMessage = ''; // Error state'i sıfırla
-        videoUrlLength = 0; // URL uzunluğunu sıfırla
+        errorMessage = ""; // Clear error state
+        videoUrlLength = 0; // Clear URL length
 
         if (featureEditor) {
             featureEditor.setContents([]);
@@ -150,14 +150,16 @@
         showDeleteConfirmModal = false;
     }
 
-    // Video işlemleri için yardımcı fonksiyonlar
+    // Helper functions for video operations
     function isValidYouTubeUrl(url) {
-        return url.includes('youtube.com') || url.includes('youtu.be');
+        return url.includes("youtube.com") || url.includes("youtu.be");
     }
 
     function extractVideoId(url) {
-        // Sadece alfanumerik karakterleri ve tire/alt çizgi karakterlerini kabul et
-        const match = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+        // Only accept alphanumeric characters and dash/underscore characters
+        const match = url.match(
+            /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/,
+        );
         return match ? match[1] : null;
     }
 
@@ -166,11 +168,11 @@
     }
 
     function cleanYouTubeUrl(url) {
-        // URL'den video ID'yi al
+        // Extract video ID from URL
         const videoId = extractVideoId(url);
         if (!videoId) return null;
-        
-        // Temiz URL'yi oluştur
+
+        // Create clean URL
         return `https://www.youtube.com/watch?v=${videoId}`;
     }
 
@@ -179,17 +181,17 @@
     }
 
     function clearError() {
-        errorMessage = '';
+        errorMessage = "";
     }
 
     function updateVideoFeature(videoUrl, embedUrl) {
-        updateFeatureState({ 
+        updateFeatureState({
             showInput: false,
             content: {
                 type: "video",
                 content: videoUrl,
                 data: embedUrl,
-            }
+            },
         });
     }
 
@@ -276,22 +278,27 @@
 
     function handleSaveReference(event) {
         const reference = event.detail.reference;
-        const formData = event.detail.formData; // Yeni form verilerini al
-        
+        const formData = event.detail.formData; // Get new form data
+
         if (isEditing && editingReferenceIndex !== null) {
-            // Mevcut referansı güncelle
-            savedReferences = savedReferences.map((ref, i) => 
-                i === editingReferenceIndex ? {
-                    text: reference,
-                    formData: formData
-                } : ref
+            // Update existing reference
+            savedReferences = savedReferences.map((ref, i) =>
+                i === editingReferenceIndex
+                    ? {
+                          text: reference,
+                          formData: formData,
+                      }
+                    : ref,
             );
         } else {
-            // Yeni referans ekle
-            savedReferences = [...savedReferences, {
-                text: reference,
-                formData: formData
-            }];
+            // Add new reference
+            savedReferences = [
+                ...savedReferences,
+                {
+                    text: reference,
+                    formData: formData,
+                },
+            ];
         }
 
         resource.references = savedReferences;
@@ -300,8 +307,8 @@
             field: "references",
             value: savedReferences,
         });
-        
-        // State'i sıfırla
+
+        // Clear state
         showReferenceModal = false;
         isEditing = false;
         editingReferenceIndex = null;
@@ -314,7 +321,9 @@
 
     function confirmDeleteReference() {
         if (referenceToDeleteIndex !== null) {
-            savedReferences = savedReferences.filter((_, i) => i !== referenceToDeleteIndex);
+            savedReferences = savedReferences.filter(
+                (_, i) => i !== referenceToDeleteIndex,
+            );
             resource.references = savedReferences;
             dispatch("update", {
                 id: resource.id,
@@ -330,7 +339,7 @@
         referenceToDeleteIndex = null;
     }
 
-    // Form işlemleri için fonksiyonlar
+    // Functions for form operations
     function handleTitleChange(event) {
         const sanitizedTitle = XssSanitizer.sanitize(event.target.value);
         const truncatedTitle = sanitizedTitle.slice(0, 100);
@@ -347,7 +356,7 @@
         const url = event.target.value;
         videoUrlLength = url.length;
         featureState.url = url;
-        errorMessage = '';
+        errorMessage = "";
     }
 
     onMount(() => {
@@ -355,7 +364,7 @@
             const Font = Quill.import("formats/font");
             const VideoBlot = Quill.import("formats/video");
 
-            // Normal editörler için font whitelist
+            // Font whitelist for normal editors
             Font.whitelist = [
                 "sans-serif",
                 "serif",
@@ -401,9 +410,9 @@
                 theme: "snow",
             });
 
-            // Video Blot konfigürasyonu
+            // Video Blot configuration
             VideoBlot.sanitize = function (url) {
-                return isValidYouTubeUrl(url) ? url : '';
+                return isValidYouTubeUrl(url) ? url : "";
             };
 
             // Feature editor için özel toolbar options
@@ -445,7 +454,7 @@
                 },
             };
 
-            // Feature editor için Quill instance oluştur
+            // Create Quill instance for feature editor
             featureEditor = new Quill(`#feature-editor-${resource.id}`, {
                 modules: {
                     toolbar: featureToolbarOptions,
@@ -454,7 +463,7 @@
                 placeholder: "",
             });
 
-            // Feature editor toolbar'ındaki butonlara özel ikonları ekle
+            // Add custom icons to buttons in feature editor toolbar
             const toolbar = featureEditor.getModule("toolbar");
             const toolbarElement = toolbar.container;
             const imageButton = toolbarElement.querySelector(".ql-image");
@@ -467,7 +476,7 @@
                 videoButton.innerHTML = `<span class="custom-icon">${icons.link}</span>`;
             }
 
-            // Sadece resim yüklendiğinde state'i güncelle
+            // Only update state when image is uploaded
             featureEditor.on("text-change", () => {
                 const img = featureEditor.root.querySelector("img");
                 if (img && !featureState.content?.type) {
@@ -622,7 +631,10 @@
                         out:fade={{ duration: 150 }}
                     >
                         {#if showVideoInput}
-                            <label for={`feature-url-${resource.id}`} class="sr-only">YouTube Video URL</label>
+                            <label
+                                for={`feature-url-${resource.id}`}
+                                class="sr-only">YouTube Video URL</label
+                            >
                             <input
                                 type="url"
                                 id={`feature-url-${resource.id}`}
@@ -631,18 +643,23 @@
                                 placeholder="Youtube link: https://www.youtube.com/watch?v=2cClcL8-aiY"
                                 class="feature-input"
                                 class:error={!!errorMessage}
-                                on:keydown={(e) => e.key === "Enter" && handleVideoEmbed()}
+                                on:keydown={(e) =>
+                                    e.key === "Enter" && handleVideoEmbed()}
                                 on:input={handleVideoUrlChange}
                                 maxlength="100"
                                 aria-label="YouTube video URL input"
                                 aria-invalid={!!errorMessage}
-                                aria-describedby={errorMessage ? `error-${resource.id}` : undefined}
+                                aria-describedby={errorMessage
+                                    ? `error-${resource.id}`
+                                    : undefined}
                             />
-                            <span class="url-character-count">{videoUrlLength}/100</span>
+                            <span class="url-character-count"
+                                >{videoUrlLength}/100</span
+                            >
                             {#if errorMessage}
-                                <div 
+                                <div
                                     id={`error-${resource.id}`}
-                                    class="error-message" 
+                                    class="error-message"
                                     role="alert"
                                 >
                                     {errorMessage}
@@ -674,7 +691,9 @@
         <div class="form-section">
             <h3>Title</h3>
             <div class="title-input-container">
-                <label for={`resource-title-${resource.id}`} class="sr-only">Resource Title</label>
+                <label for={`resource-title-${resource.id}`} class="sr-only"
+                    >Resource Title</label
+                >
                 <input
                     type="text"
                     id={`resource-title-${resource.id}`}
@@ -721,18 +740,22 @@
                 <div class="references-container">
                     {#each savedReferences as reference, index}
                         <div class="reference-item">
-                            <p bind:innerHTML={reference.text} contenteditable="false"></p>
+                            <p
+                                bind:innerHTML={reference.text}
+                                contenteditable="false"
+                            ></p>
                             <div class="reference-actions">
-                                <button 
+                                <button
                                     class="action-btn edit-btn"
                                     on:click={() => handleEditReference(index)}
                                     aria-label="Edit reference"
                                 >
                                     {@html icons.edit}
                                 </button>
-                                <button 
+                                <button
                                     class="action-btn delete-btn"
-                                    on:click={() => handleDeleteReference(index)}
+                                    on:click={() =>
+                                        handleDeleteReference(index)}
                                     aria-label="Delete reference"
                                 >
                                     {@html icons.delete}
@@ -751,10 +774,12 @@
             bind:showModal={showReferenceModal}
             title="APA 7th Reference Generator"
         >
-            <ReferenceHelper 
+            <ReferenceHelper
                 on:save={handleSaveReference}
                 {isEditing}
-                reference={isEditing ? savedReferences[editingReferenceIndex] : null}
+                reference={isEditing
+                    ? savedReferences[editingReferenceIndex]
+                    : null}
             />
         </Modal>
     </div>
@@ -787,8 +812,8 @@
 
 <style>
     * {
-        font-family: "Inter", "Lato Extended", "Lato", "Helvetica Neue", "Helvetica",
-    "Arial", "sans-serif";
+        font-family: "Inter", "Lato Extended", "Lato", "Helvetica Neue",
+            "Helvetica", "Arial", "sans-serif";
         box-sizing: border-box;
         line-height: 1.6;
         font-size: 14px;
@@ -805,8 +830,7 @@
         border-radius: 1px;
         border: 1px solid #e5e5e5;
         position: relative;
-        background: #FCFCFC;
-
+        background: #fcfcfc;
     }
 
     .form-section {
@@ -832,7 +856,6 @@
     }
 
     .title-input::placeholder {
-
         font-weight: 300;
         font-style: italic;
         line-height: 150%;
@@ -1441,7 +1464,7 @@
     }
 
     .edit-btn:hover {
-        color: #1A5AFF;
+        color: #1a5aff;
     }
 
     .delete-btn:hover {
@@ -1475,8 +1498,8 @@
         transform: translateY(-50%);
         color: #666;
         font-size: 12px;
-        pointer-events: none; 
-        user-select: none; 
+        pointer-events: none;
+        user-select: none;
         font-weight: 300;
     }
 
@@ -1514,5 +1537,4 @@
         white-space: nowrap;
         border: 0;
     }
-
 </style>

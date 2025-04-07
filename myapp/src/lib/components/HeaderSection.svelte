@@ -1,5 +1,5 @@
 <script>
-    // İleride gerekli olabilecek prop'lar ve logic buraya eklenecek
+    // Props and logic that may be needed in the future will be added here
 </script>
 
 <div class="header">
@@ -10,14 +10,14 @@
 
 <style>
     * {
-        font-family: "Inter", "Lato Extended", "Lato", "Helvetica Neue", "Helvetica",
-    "Arial", "sans-serif";
+        font-family: "Inter", "Lato Extended", "Lato", "Helvetica Neue",
+            "Helvetica", "Arial", "sans-serif";
         box-sizing: border-box;
         font-weight: 300;
     }
 
     .header {
-        background-color: #1A5AFF;
+        background-color: #1a5aff;
         width: 100%;
         margin: 1rem 0 2rem 0;
     }

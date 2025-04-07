@@ -1,13 +1,15 @@
 <script>
-        import { fade } from 'svelte/transition';
+    import { fade } from "svelte/transition";
 
-    export let showModal = false;
-    export let title = "";
+    export let showModal = false; //Controls the visibility of the modal
+    export let title = ""; //The title text displayed in the modal header
 
+    //Closes the modal by setting showModal to false
     function closeModal() {
         showModal = false;
     }
 
+    //Handles the Escape key to close the modal
     function handleKeydown(event) {
         if (event.key === "Escape") {
             closeModal();
@@ -15,6 +17,7 @@
     }
 </script>
 
+<!-- Modal Container - Only shown when 'showModal' prop is true -->
 {#if showModal}
     <div
         class="modal-backdrop transition:fade={{ duration: 150 }}"
@@ -23,11 +26,22 @@
         role="dialog"
         aria-modal="true"
     >
-        <div class="modal-content" on:click|stopPropagation on:keydown|stopPropagation role="dialog" tabindex="0" transition:fade={{ duration: 200 }}>
+        <!-- Modal Content Container with Event Propagation Control -->
+        <div
+            class="modal-content"
+            on:click|stopPropagation
+            on:keydown|stopPropagation
+            role="dialog"
+            tabindex="0"
+            transition:fade={{ duration: 200 }}
+        >
+            <!-- Close Button - Closes the modal -->
             <button class="close-button" on:click={closeModal}>&times;</button>
+            <!-- Modal Header Section -->
             <div class="modal-header">
                 <h2>{title}</h2>
             </div>
+            <!-- Modal Body - Content Slot -->
             <div class="modal-body">
                 <slot />
             </div>

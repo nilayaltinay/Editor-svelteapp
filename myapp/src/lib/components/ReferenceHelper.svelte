@@ -1,9 +1,11 @@
 <script>
-  import { createEventDispatcher } from 'svelte';
-  import { ReferenceValidator } from '$lib/services/validators/ReferenceValidator';
-  import XssSanitizer from '$lib/services/sanitizers/XssSanitizer';
+  import { createEventDispatcher } from "svelte";
+  import { ReferenceValidator } from "$lib/services/validators/ReferenceValidator";
+  import XssSanitizer from "$lib/services/sanitizers/XssSanitizer";
+
   const dispatch = createEventDispatcher();
 
+  //URL Validation and Sanitization, Returns true if URL is valid
   function isValidUrl(url) {
     try {
       new URL(url);
@@ -13,40 +15,47 @@
     }
   }
 
+  //Sanitizes URL input and returns sanitized URL or empty string if invalid
   function sanitizeUrl(url) {
-    if (!isValidUrl(url)) return '';
+    if (!isValidUrl(url)) return "";
     return XssSanitizer.sanitize(url);
   }
 
-  export let isEditing = false;
-  export let reference = null;
+  //Props for reference editing
+  export let isEditing = false; //Controls if the reference is being edited
+  export let reference = null; //Reference data to be edited
 
-  let resourceType = '';
-  let title = '';
-  let authors = [{
-    firstName: '',
-    lastName: '',
-    year: ''
-  }];
-  let publicationFields = [];
-  let referenceOutput = '';
-  let errors = [];
-  let isFormValid = false;
+  let resourceType = ""; //Type of reference (book, journal, etc.)
+  let title = ""; //Title of the reference
+  let authors = [
+    {
+      firstName: "", //First name of the author
+      lastName: "", //Last name of the author
+      year: "", //Publication year of the author
+    },
+  ];
+  let publicationFields = []; //Publication fields (publisher, location, journal, volume, issue, pages, url, doi)
+  let referenceOutput = ""; //Generated reference string
+  let errors = []; //Form validation errors
+  let isFormValid = false; //Form validation status
 
-  // Düzenleme modunda form verilerini doldur
+  //Reactive statement to populate form when editing
+  //Fills form fields with existing reference data
   $: if (isEditing && reference?.formData) {
     const { formData } = reference;
-    resourceType = formData.resourceType || '';
-    title = formData.title || '';
-    authors = formData.authors || [{
-      firstName: '',
-      lastName: '',
-      year: ''
-    }];
+    resourceType = formData.resourceType || "";
+    title = formData.title || "";
+    authors = formData.authors || [
+      {
+        firstName: "",
+        lastName: "",
+        year: "",
+      },
+    ];
     publicationFields = formData.publicationFields || [];
   }
 
-  // Input sanitization handlers
+  // Input sanitization handlers (Sanitize and update form values)
   function handleResourceTypeChange(event) {
     resourceType = XssSanitizer.sanitize(event.target.value);
   }
@@ -57,32 +66,35 @@
 
   function handleAuthorChange(event, index, field) {
     const sanitizedValue = XssSanitizer.sanitize(event.target.value);
-    authors = authors.map((author, i) => 
-      i === index ? { ...author, [field]: sanitizedValue } : author
+    authors = authors.map((author, i) =>
+      i === index ? { ...author, [field]: sanitizedValue } : author,
     );
   }
 
   function handlePublicationFieldChange(event, index) {
     const value = event.target.value;
     const field = publicationFields[index];
-    
+
     let sanitizedValue = XssSanitizer.sanitize(value);
-    
-    if (field.type === 'url') {
+
+    if (field.type === "url") {
       sanitizedValue = sanitizeUrl(value);
     }
-    
-    publicationFields = publicationFields.map((f, i) => 
-      i === index ? { ...f, value: sanitizedValue } : f
+
+    publicationFields = publicationFields.map((f, i) =>
+      i === index ? { ...f, value: sanitizedValue } : f,
     );
   }
 
   function addAuthor() {
-    authors = [...authors, {
-      firstName: '',
-      lastName: '',
-      year: ''
-    }];
+    authors = [
+      ...authors,
+      {
+        firstName: "",
+        lastName: "",
+        year: "",
+      },
+    ];
   }
 
   function removeAuthor(index) {
@@ -90,12 +102,20 @@
     updateReference();
   }
 
+  /**
+   * Publication Field Management Functions
+   * Handle adding, removing, and updating publication-specific fields
+   * such as publisher, location, journal, volume, etc.
+   */
   function addPublicationField(fieldType) {
-    publicationFields = [...publicationFields, {
-      type: fieldType,
-      value: '',
-      placeholder: getPlaceholder(fieldType)
-    }];
+    publicationFields = [
+      ...publicationFields,
+      {
+        type: fieldType,
+        value: "",
+        placeholder: getPlaceholder(fieldType),
+      },
+    ];
   }
 
   function removePublicationField(index) {
@@ -104,45 +124,74 @@
   }
 
   function getPlaceholder(fieldType) {
-    switch(fieldType) {
-      case 'url': return 'Enter URL';
-      case 'doi': return 'Enter DOI';
-      case 'volume': return 'Enter volume number';
-      case 'issue': return 'Enter issue number';
-      case 'pages': return 'Enter page numbers';
-      default: return `Enter ${fieldType}`;
+    switch (fieldType) {
+      case "url":
+        return "Enter URL";
+      case "doi":
+        return "Enter DOI";
+      case "volume":
+        return "Enter volume number";
+      case "issue":
+        return "Enter issue number";
+      case "pages":
+        return "Enter page numbers";
+      default:
+        return `Enter ${fieldType}`;
     }
   }
 
+  /**
+   * Updates the reference output based on current form data
+   * Formats authors, combines year, and generates reference string
+   * based on resource type and available fields
+   */
   function updateReference() {
-    const formattedAuthors = authors.map(author => {
+    const formattedAuthors = authors.map((author) => {
       const authorInitial = author.firstName.charAt(0).toUpperCase();
       return `${author.lastName}, ${authorInitial}.`;
     });
 
-    const year = authors[0]?.year || '';
-    const authorsWithYear = year ? `${formattedAuthors.join(', & ')} (${year})` : formattedAuthors.join(', & ');
+    const year = authors[0]?.year || "";
+    const authorsWithYear = year
+      ? `${formattedAuthors.join(", & ")} (${year})`
+      : formattedAuthors.join(", & ");
 
     const publicationInfo = {};
-    publicationFields.forEach(field => {
+    publicationFields.forEach((field) => {
       publicationInfo[field.type] = field.value;
     });
 
-    let reference = '';
+    let reference = "";
 
     if (resourceType && title) {
-      switch(resourceType) {
-        case 'book':
-          reference = formatBookReference(authorsWithYear, title, publicationInfo);
+      switch (resourceType) {
+        case "book":
+          reference = formatBookReference(
+            authorsWithYear,
+            title,
+            publicationInfo,
+          );
           break;
-        case 'journal':
-          reference = formatJournalReference(authorsWithYear, title, publicationInfo);
+        case "journal":
+          reference = formatJournalReference(
+            authorsWithYear,
+            title,
+            publicationInfo,
+          );
           break;
-        case 'website':
-          reference = formatWebsiteReference(authorsWithYear, title, publicationInfo);
+        case "website":
+          reference = formatWebsiteReference(
+            authorsWithYear,
+            title,
+            publicationInfo,
+          );
           break;
-        case 'newspaper':
-          reference = formatNewspaperReference(authorsWithYear, title, publicationInfo);
+        case "newspaper":
+          reference = formatNewspaperReference(
+            authorsWithYear,
+            title,
+            publicationInfo,
+          );
           break;
       }
     }
@@ -150,11 +199,12 @@
     referenceOutput = reference;
   }
 
+  //Format different types of references according to their style
   function formatBookReference(authors, title, info) {
     let reference = `${authors}. ${title}.`;
     if (info.publisher) reference += ` ${info.publisher}`;
     if (info.location) reference += ` (${info.location})`;
-    return reference + '.';
+    return reference + ".";
   }
 
   function formatJournalReference(authors, title, info) {
@@ -163,54 +213,63 @@
     if (info.volume) reference += `, ${info.volume}`;
     if (info.issue) reference += `(${info.issue})`;
     if (info.pages) reference += `, ${info.pages}`;
-    if (info.doi) reference += `. <a href="https://doi.org/${info.doi}" target="_blank" rel="noopener noreferrer">https://doi.org/${info.doi}</a>`;
-    return reference + '.';
+    if (info.doi)
+      reference += `. <a href="https://doi.org/${info.doi}" target="_blank" rel="noopener noreferrer">https://doi.org/${info.doi}</a>`;
+    return reference + ".";
   }
 
   function formatWebsiteReference(authors, title, info) {
     let reference = `${authors}. ${title}.`;
     if (info.publisher) reference += ` ${info.publisher}`;
-    if (info.url) reference += ` <a href="${info.url}" target="_blank" rel="noopener noreferrer">${info.url}</a>`;
-    return reference + '.';
+    if (info.url)
+      reference += ` <a href="${info.url}" target="_blank" rel="noopener noreferrer">${info.url}</a>`;
+    return reference + ".";
   }
 
   function formatNewspaperReference(authors, title, info) {
     let reference = `${authors}. ${title}.`;
     if (info.publisher) reference += ` ${info.publisher}`;
-    if (info.url) reference += ` <a href="${info.url}" target="_blank" rel="noopener noreferrer">${info.url}</a>`;
-    return reference + '.';
+    if (info.url)
+      reference += ` <a href="${info.url}" target="_blank" rel="noopener noreferrer">${info.url}</a>`;
+    return reference + ".";
   }
 
+  //Form Validation, validates all form fields and updates error state
   function validateForm() {
     const validationResult = ReferenceValidator.validateForm({
       resourceType,
       title,
       authors,
-      publicationFields
+      publicationFields,
     });
-    
+
     errors = validationResult.errors;
     isFormValid = validationResult.isValid;
     return isFormValid;
   }
 
+  //Save Reference, saves the reference and dispatches the save event
   function saveReference() {
     if (!validateForm()) {
       return;
     }
 
-    // Form verilerini de gönder
-    dispatch('save', { 
+    // Send form data to parent component
+    dispatch("save", {
       reference: referenceOutput,
       formData: {
         resourceType,
         title,
         authors,
-        publicationFields
-      }
+        publicationFields,
+      },
     });
   }
 
+  /**
+   * Reactive statement to update reference and validate form
+   * Triggers when any form field changes
+   */
   $: {
     if (resourceType || title || authors || publicationFields) {
       updateReference();
@@ -219,11 +278,13 @@
   }
 </script>
 
+<!-- Reference Helper Form Container -->
 <div class="reference-helper">
+  <!-- Resource Type Selection -->
   <div class="form-group">
     <label for="resource-type">Resource Type:</label>
-    <select 
-      id="resource-type" 
+    <select
+      id="resource-type"
       bind:value={resourceType}
       on:change={handleResourceTypeChange}
       required
@@ -238,110 +299,150 @@
     </select>
   </div>
 
+  <!-- Authors Input Container -->
   <div class="form-group">
     <label for="authors-container">Authors:</label>
     <div id="authors-container" class="authors-container">
       {#each authors as author, i}
         <div class="author-inputs">
-          <input 
-            type="text" 
-            id={`author-first-${i}`} 
+          <input
+            type="text"
+            id={`author-first-${i}`}
             value={author.firstName}
-            on:input={(e) => handleAuthorChange(e, i, 'firstName')}
-            placeholder="First Name" 
+            on:input={(e) => handleAuthorChange(e, i, "firstName")}
+            placeholder="First Name"
             required
-          >
-          <input 
-            type="text" 
-            id={`author-last-${i}`} 
+          />
+          <input
+            type="text"
+            id={`author-last-${i}`}
             value={author.lastName}
-            on:input={(e) => handleAuthorChange(e, i, 'lastName')}
-            placeholder="Last Name" 
+            on:input={(e) => handleAuthorChange(e, i, "lastName")}
+            placeholder="Last Name"
             required
-          >
-          <input 
-            type="number" 
-            id={`author-year-${i}`} 
+          />
+          <input
+            type="number"
+            id={`author-year-${i}`}
             value={author.year}
-            on:input={(e) => handleAuthorChange(e, i, 'year')}
-            placeholder="Year" 
-            min="1900" 
-            max="2100" 
+            on:input={(e) => handleAuthorChange(e, i, "year")}
+            placeholder="Year"
+            min="1900"
+            max="2100"
             required
-          >
+          />
           {#if i > 0}
-            <button 
-              type="button" 
-              class="remove-author" 
-              on:click={() => removeAuthor(i)} 
-              aria-label="Remove author"
-            >×</button>
+            <button
+              type="button"
+              class="remove-author"
+              on:click={() => removeAuthor(i)}
+              aria-label="Remove author">×</button
+            >
           {/if}
         </div>
       {/each}
     </div>
-    <button type="button" class="secondary-button" on:click={addAuthor}>+ Add Another Author</button>
-  </div>
-
-  <div class="form-group">
-    <label for="reference-title">Title:</label>
-    <input 
-      type="text" 
-      id="reference-title" 
-      value={title}
-      on:input={handleTitleChange}
-      placeholder="Enter Title" 
-      required
+    <button type="button" class="secondary-button" on:click={addAuthor}
+      >+ Add Another Author</button
     >
   </div>
 
   <div class="form-group">
+    <label for="reference-title">Title:</label>
+    <input
+      type="text"
+      id="reference-title"
+      value={title}
+      on:input={handleTitleChange}
+      placeholder="Enter Title"
+      required
+    />
+  </div>
+  <!-- Publication Fields Section -->
+  <div class="form-group">
     <label for="publication-container">Publication Information:</label>
+    <!-- Dynamic publication fields container -->
     <div id="publication-container" class="publication-fields">
       {#each publicationFields as field, i}
         <div class="publication-field">
-          <input 
-            type={field.type === 'url' ? 'url' : 'text'} 
+          <input
+            type={field.type === "url" ? "url" : "text"}
             id={`publication-field-${i}`}
             value={field.value}
             on:input={(e) => handlePublicationFieldChange(e, i)}
-            placeholder={field.placeholder} 
+            placeholder={field.placeholder}
             required
+          />
+          <button
+            type="button"
+            class="remove-field"
+            on:click={() => removePublicationField(i)}>×</button
           >
-          <button 
-            type="button" 
-            class="remove-field" 
-            on:click={() => removePublicationField(i)}
-          >×</button>
         </div>
       {/each}
     </div>
+
+    <!-- Publication field type buttons -->
     <div class="publication-buttons">
-      <button type="button" class="secondary-button" on:click={() => addPublicationField('publisher')}>Add Publisher</button>
-      <button type="button" class="secondary-button" on:click={() => addPublicationField('location')}>Add Location</button>
-      <button type="button" class="secondary-button" on:click={() => addPublicationField('journal')}>Add Journal Name</button>
-      <button type="button" class="secondary-button" on:click={() => addPublicationField('volume')}>Add Volume</button>
-      <button type="button" class="secondary-button" on:click={() => addPublicationField('issue')}>Add Issue</button>
-      <button type="button" class="secondary-button" on:click={() => addPublicationField('pages')}>Add Pages</button>
+      <button
+        type="button"
+        class="secondary-button"
+        on:click={() => addPublicationField("publisher")}>Add Publisher</button
+      >
+      <button
+        type="button"
+        class="secondary-button"
+        on:click={() => addPublicationField("location")}>Add Location</button
+      >
+      <button
+        type="button"
+        class="secondary-button"
+        on:click={() => addPublicationField("journal")}>Add Journal Name</button
+      >
+      <button
+        type="button"
+        class="secondary-button"
+        on:click={() => addPublicationField("volume")}>Add Volume</button
+      >
+      <button
+        type="button"
+        class="secondary-button"
+        on:click={() => addPublicationField("issue")}>Add Issue</button
+      >
+      <button
+        type="button"
+        class="secondary-button"
+        on:click={() => addPublicationField("pages")}>Add Pages</button
+      >
     </div>
   </div>
 
   <div class="form-group">
     <label for="additional-container">Additional Information:</label>
     <div id="additional-container" class="additional-buttons">
-      <button type="button" class="secondary-button" on:click={() => addPublicationField('url')}>Add URL</button>
-      <button type="button" class="secondary-button" on:click={() => addPublicationField('doi')}>Add DOI</button>
+      <button
+        type="button"
+        class="secondary-button"
+        on:click={() => addPublicationField("url")}>Add URL</button
+      >
+      <button
+        type="button"
+        class="secondary-button"
+        on:click={() => addPublicationField("doi")}>Add DOI</button
+      >
     </div>
   </div>
 
+  <!-- Reference Output and Error Display -->
   <div class="result-container">
     <h2>Generated Reference:</h2>
-    <div 
-      class="reference-output" 
+    <div
+      class="reference-output"
       bind:innerHTML={referenceOutput}
       contenteditable="false"
     ></div>
-    
+
+    <!-- Error Messages -->
     {#if errors.length > 0}
       <div class="error-messages">
         {#each errors as error}
@@ -350,9 +451,10 @@
       </div>
     {/if}
 
+    <!-- Save Button -->
     <div class="button-group">
-      <button 
-        class="save-button" 
+      <button
+        class="save-button"
         on:click={saveReference}
         disabled={!isFormValid}
         aria-label="Save reference"
@@ -364,10 +466,9 @@
 </div>
 
 <style>
-  
-  *{
+  * {
     font-family: "Inter", "Lato Extended", "Lato", "Helvetica Neue", "Helvetica",
-    "Arial", "sans-serif";
+      "Arial", "sans-serif";
     box-sizing: border-box;
     line-height: 1;
     font-size: 14px;
@@ -376,7 +477,6 @@
     padding: 0;
     box-sizing: border-box;
     color: #333;
-    
   }
 
   .reference-helper h2 {
@@ -384,7 +484,6 @@
     line-height: 1.2;
     color: #333;
   }
-
 
   .form-group {
     margin-bottom: 1.5rem;
@@ -397,7 +496,8 @@
     color: #2c3e50;
   }
 
-  input, select {
+  input,
+  select {
     width: 100%;
     padding: 10px;
     border: 1px solid #ddd;
@@ -414,7 +514,8 @@
     align-items: center;
   }
 
-  .remove-author, .remove-field {
+  .remove-author,
+  .remove-field {
     background: none;
     border: none;
     color: #e74c3c;
@@ -432,7 +533,8 @@
     align-items: center;
   }
 
-  .publication-buttons, .additional-buttons {
+  .publication-buttons,
+  .additional-buttons {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
@@ -499,7 +601,8 @@
       grid-template-columns: 1fr;
     }
 
-    .publication-buttons, .additional-buttons {
+    .publication-buttons,
+    .additional-buttons {
       flex-direction: column;
     }
 
@@ -540,4 +643,4 @@
     background-color: #cccccc;
     cursor: not-allowed;
   }
-</style> 
+</style>
