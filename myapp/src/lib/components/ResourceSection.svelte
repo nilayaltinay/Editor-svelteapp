@@ -25,6 +25,9 @@
 
     let quill;
     let featureEditor;
+    let editor;
+    let editorElement;
+
 
     // Feature state management
     let featureState = {
@@ -42,7 +45,6 @@
     let isDragging = false;
     let startY = 0;
     let startHeight = 0;
-    let editor;
 
     let showReferenceModal = false;
     let showDeleteConfirmModal = false;
@@ -222,8 +224,7 @@
     function handleMouseDown(event) {
         isDragging = true;
         startY = event.clientY;
-        editor = document.querySelector(`#editor-${resource.id}`);
-        startHeight = editor.offsetHeight;
+        startHeight = editorElement.offsetHeight;
 
         window.addEventListener("mousemove", handleMouseMove);
         window.addEventListener("mouseup", handleMouseUp);
@@ -238,7 +239,7 @@
             maxHeight,
             Math.max(200, startHeight + deltaY),
         );
-        editor.style.height = `${newHeight}px`;
+        editorElement.style.height = `${newHeight}px`;
     }
 
     function handleMouseUp() {
@@ -492,9 +493,8 @@
         }
 
         // Store original height after Quill initialization
-        const editor = document.querySelector(`#editor-${resource.id}`);
-        if (editor) {
-            startHeight = editor.offsetHeight;
+        if (editorElement) {
+            startHeight = editorElement.offsetHeight;
         }
     });
 
@@ -714,7 +714,7 @@
                 class="description-container"
                 class:fullscreen-mode={isFullscreen}
             >
-                <div id={`editor-${resource.id}`}></div>
+                <div id={`editor-${resource.id}`} bind:this={editorElement}></div>
                 <div class="editor-resize-buttons">
                     <button
                         class="resize-button"
