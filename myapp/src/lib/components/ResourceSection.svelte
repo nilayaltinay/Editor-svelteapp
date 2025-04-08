@@ -25,6 +25,8 @@
 
     let quill;
     let featureEditor;
+    let featureEditorRoot;
+    let featureToolbar;
     let editor;
     let editorElement;
 
@@ -84,8 +86,8 @@
 
     function updateFeatureContent(editor) {
         // Only run when video or image is added
-        const img = editor.root.querySelector("img");
-        const iframe = editor.root.querySelector("iframe.ql-video");
+        const img = featureEditorRoot.querySelector("img");
+        const iframe = featureEditorRoot.querySelector("iframe.ql-video");
 
         if (img && !featureState.content?.type) {
             updateFeatureState({
@@ -464,11 +466,13 @@
                 placeholder: "",
             });
 
+            // Get toolbar and root references
+            featureToolbar = featureEditor.getModule("toolbar");
+            featureEditorRoot = featureEditor.root;
+
             // Add custom icons to buttons in feature editor toolbar
-            const toolbar = featureEditor.getModule("toolbar");
-            const toolbarElement = toolbar.container;
-            const imageButton = toolbarElement.querySelector(".ql-image");
-            const videoButton = toolbarElement.querySelector(".ql-video");
+            const imageButton = featureToolbar.container.querySelector(".ql-image");
+            const videoButton = featureToolbar.container.querySelector(".ql-video");
 
             if (imageButton) {
                 imageButton.innerHTML = `<span class="custom-icon">${icons.fileUpload}</span>`;
@@ -479,7 +483,7 @@
 
             // Only update state when image is uploaded
             featureEditor.on("text-change", () => {
-                const img = featureEditor.root.querySelector("img");
+                const img = featureEditorRoot.querySelector("img");
                 if (img && !featureState.content?.type) {
                     updateFeatureState({
                         content: {

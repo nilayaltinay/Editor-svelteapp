@@ -10,7 +10,7 @@
   let isDragging = false; //Tracks if the editor is being resized
   let startY = 0; //Initial Y position for resize operation
   let startHeight = 0; //Initial height of editor when resize begins
-  let editor; //Reference to the editor DOM element
+  let editorElement; //Reference to the editor DOM element
   let showDeleteModal = false; //Controls visibility of the delete confirmation modal
 
   //Toggle fullscreen mode for introduction section editor
@@ -25,8 +25,7 @@
   function handleMouseDown(event) {
     isDragging = true;
     startY = event.clientY;
-    editor = document.querySelector("#introduction-editor");
-    startHeight = editor.offsetHeight;
+    startHeight = editorElement.offsetHeight;
 
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("mouseup", handleMouseUp);
@@ -38,7 +37,7 @@
     const deltaY = event.clientY - startY;
     const maxHeight = 500;
     const newHeight = Math.min(maxHeight, Math.max(200, startHeight + deltaY));
-    editor.style.height = `${newHeight}px`;
+    editorElement.style.height = `${newHeight}px`;
   }
 
   function handleMouseUp() {
@@ -121,9 +120,8 @@
     }
 
     // Initialize editor height when component mounts
-    editor = document.querySelector("#introduction-editor");
-    if (editor) {
-      startHeight = editor.offsetHeight;
+    if (editorElement) {
+      startHeight = editorElement.offsetHeight;
     }
   });
 
@@ -162,7 +160,7 @@
       class:fullscreen-mode={isIntroFullscreen}
     >
       <!-- Quill Editor Container -->
-      <div id="introduction-editor"></div>
+      <div id="introduction-editor" bind:this={editorElement}></div>
       <!-- Editor Resize Buttons -->
       <div class="editor-resize-buttons">
         <button
