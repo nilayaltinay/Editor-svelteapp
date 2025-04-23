@@ -3,6 +3,7 @@
     import { fade, slide } from "svelte/transition";
     import { createEventDispatcher } from "svelte";
     import ResourceHeader from "./ResourceHeader.svelte";
+    import ResourceTitle from "./ResourceTitle.svelte";
     import Modal from "./modal.svelte";
     import ReferenceHelper from "./ReferenceHelper.svelte";
     import ResourceDelete from "./ResourceDelete.svelte";
@@ -58,7 +59,7 @@
     let referenceToDeleteIndex = null; // Index of the reference to be deleted
     let isEditing = false; // Flag indicating if we are in edit mode
 
-    let titleLength = 0;
+
     let videoUrlLength = 0;
 
     function updateFeatureState(updates) {
@@ -314,17 +315,7 @@
     }
 
     // Functions for form operations
-    function handleTitleChange(event) {
-        const sanitizedTitle = XssSanitizer.sanitize(event.target.value);
-        const truncatedTitle = sanitizedTitle.slice(0, 100);
-        titleLength = truncatedTitle.length;
-        resource.title = truncatedTitle;
-        dispatch("update", {
-            id: resource.id,
-            field: "title",
-            value: truncatedTitle,
-        });
-    }
+
 
     function handleVideoUrlChange(event) {
         const url = event.target.value;
@@ -647,22 +638,7 @@
 
         <div class="form-section">
             <h3>Title</h3>
-            <div class="title-input-container">
-                <label for={`resource-title-${resource.id}`} class="sr-only"
-                    >Resource Title</label
-                >
-                <input
-                    type="text"
-                    id={`resource-title-${resource.id}`}
-                    name={`resource-title-${resource.id}`}
-                    value={resource.title}
-                    on:input={handleTitleChange}
-                    placeholder="Enter title"
-                    class="title-input"
-                    maxlength="100"
-                />
-                <span class="character-count">{titleLength}/100</span>
-            </div>
+            <ResourceTitle {resource} on:update={event => dispatch("update", event.detail)} />
         </div>
 
         <div class="form-section">
@@ -790,30 +766,6 @@
         font-weight: 400;
     }
 
-    .title-input {
-        width: 100%;
-        padding: 8px 12px;
-        padding-right: 3.5rem;
-        border: 1px solid #e5e5e5;
-        border-radius: 1px;
-        font-size: 14px;
-        box-sizing: border-box;
-        height: 40px;
-        line-height: 24px;
-    }
-
-    .title-input::placeholder {
-        font-weight: 300;
-        font-style: italic;
-        line-height: 150%;
-        letter-spacing: -1.1%;
-        color: #949494;
-    }
-
-    .title-input:focus {
-        outline: none;
-        border-color: #6792ff;
-    }
 
     .description-container {
         border: 1px solid #e5e5e5;
@@ -1376,22 +1328,7 @@
         }
     }
 
-    .title-input-container {
-        position: relative;
-        width: 100%;
-    }
 
-    .character-count {
-        position: absolute;
-        right: 12px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: #666;
-        font-size: 12px;
-        pointer-events: none;
-        user-select: none;
-        font-weight: 300;
-    }
 
     .url-character-count {
         position: absolute;
