@@ -5,6 +5,7 @@
     import ResourceHeader from "./ResourceHeader.svelte";
     import Modal from "./modal.svelte";
     import ReferenceHelper from "./ReferenceHelper.svelte";
+    import ResourceDelete from "./ResourceDelete.svelte";
     import ConfirmationModal from "./ConfirmationModal.svelte";
     import { XssSanitizer } from "$lib/services/sanitizers";
 
@@ -139,20 +140,7 @@
         showReferenceModal = true;
     }
 
-    function openDeleteConfirmModal() {
-        showDeleteConfirmModal = true;
-    }
 
-    function confirmDelete() {
-        if (resource?.id) {
-            dispatch("delete", { id: resource.id });
-            showDeleteConfirmModal = false;
-        }
-    }
-
-    function closeDeleteConfirmModal() {
-        showDeleteConfirmModal = false;
-    }
 
     // Helper functions for video operations
     function isValidYouTubeUrl(url) {
@@ -254,10 +242,7 @@
         window.removeEventListener("mouseup", handleMouseUp);
     }
 
-    function handleDelete() {
-        console.log("Delete button clicked");
-        openDeleteConfirmModal();
-    }
+
 
     function handleEditReference(index) {
         editingReferenceIndex = index;
@@ -347,6 +332,12 @@
         featureState.url = url;
         errorMessage = "";
     }
+
+    function handleDelete(event) {
+    const { id } = event.detail;
+    // Silme işlemini gerçekleştir
+    dispatch("delete", { id });
+}
 
     onMount(() => {
         if (typeof window !== "undefined") {
@@ -492,9 +483,7 @@
 
     // SVG Icons Library
     const icons = {
-        delete: `<svg width="16" height="16" viewBox="0 0 8 8" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M1.91663 7.75C1.68746 7.75 1.49128 7.6684 1.32808 7.50521C1.16489 7.34201 1.08329 7.14583 1.08329 6.91667V1.5H0.666626V0.666667H2.74996V0.25H5.24996V0.666667H7.33329V1.5H6.91663V6.91667C6.91663 7.14583 6.83503 7.34201 6.67183 7.50521C6.50864 7.6684 6.31246 7.75 6.08329 7.75H1.91663ZM6.08329 1.5H1.91663V6.91667H6.08329V1.5ZM2.74996 6.08333H3.58329V2.33333H2.74996V6.08333ZM4.41663 6.08333H5.24996V2.33333H4.41663V6.08333Z" fill="currentColor"/>
-      </svg>`,
+
         edit: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <g clip-path="url(#clip0_76_4984)">
               <path d="M3 17.25V21H6.75L17.81 9.94L14.06 6.19L3 17.25ZM20.71 7.04C21.1 6.65 21.1 6.02 20.71 5.63L18.37 3.29C17.98 2.9 17.35 2.9 16.96 3.29L15.13 5.12L18.88 8.87L20.71 7.04Z" fill="currentColor"/>
@@ -754,23 +743,10 @@
             />
         </Modal>
     </div>
-    <button
-        class="delete-btn"
-        on:click={handleDelete}
-        aria-label="Delete resource"
-    >
-        Delete
-        {@html icons.delete}
-    </button>
+    <ResourceDelete {resource} on:delete={handleDelete} />
 </div>
 
-<ConfirmationModal
-    show={showDeleteConfirmModal}
-    type="delete"
-    content={resource.title || "Untitled resource"}
-    onConfirm={confirmDelete}
-    onCancel={closeDeleteConfirmModal}
-/>
+
 
 <ConfirmationModal
     show={showDeleteReferenceModal}
@@ -885,17 +861,7 @@
         display: flex;
     }
 
-    .delete-btn {
-        background: #ff5656;
-        color: white;
-        padding: 0.1rem 1rem;
-        border: none;
-        cursor: pointer;
-        align-items: center;
-        gap: 0.5rem;
-        font-size: 14px;
-        justify-self: end;
-    }
+
 
     .feature-element {
         width: 100%;
@@ -1393,9 +1359,7 @@
         color: #1a5aff;
     }
 
-    .delete-btn:hover {
-        color: #ff5656;
-    }
+
 
     .error-message {
         color: #ff5656;
