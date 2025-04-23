@@ -4,10 +4,8 @@
     import { createEventDispatcher } from "svelte";
     import ResourceHeader from "./ResourceHeader.svelte";
     import ResourceTitle from "./ResourceTitle.svelte";
-    import Modal from "./modal.svelte";
-    import ReferenceHelper from "./ReferenceHelper.svelte";
+    import ResourceReference from "./ResourceReference.svelte";
     import ResourceDelete from "./ResourceDelete.svelte";
-    import ConfirmationModal from "./ConfirmationModal.svelte";
     import { XssSanitizer } from "$lib/services/sanitizers";
 
     export let resource = {
@@ -25,7 +23,6 @@
     const dispatch = createEventDispatcher();
     let debounceTimer;
     let updateTimer;
-
     let quill;
     let featureEditor;
     let featureEditorRoot;
@@ -49,17 +46,7 @@
     let isDragging = false;
     let startY = 0;
     let startHeight = 0;
-
-    let showReferenceModal = false;
-    let showDeleteConfirmModal = false;
-    let showDeleteReferenceModal = false;
-    let savedReferences = []; // Array to store saved references
     let errorMessage = ""; // Add error message state
-    let editingReferenceIndex = null; // Index of the reference being edited
-    let referenceToDeleteIndex = null; // Index of the reference to be deleted
-    let isEditing = false; // Flag indicating if we are in edit mode
-
-
     let videoUrlLength = 0;
 
     function updateFeatureState(updates) {
@@ -134,14 +121,6 @@
     function toggleFullscreen() {
         isFullscreen = !isFullscreen;
     }
-
-    function openReferenceModal() {
-        isEditing = false;
-        editingReferenceIndex = null;
-        showReferenceModal = true;
-    }
-
-
 
     // Helper functions for video operations
     function isValidYouTubeUrl(url) {
@@ -243,80 +222,7 @@
         window.removeEventListener("mouseup", handleMouseUp);
     }
 
-
-
-    function handleEditReference(index) {
-        editingReferenceIndex = index;
-        isEditing = true;
-        showReferenceModal = true;
-    }
-
-    function handleSaveReference(event) {
-        const reference = event.detail.reference;
-        const formData = event.detail.formData; // Get new form data
-
-        if (isEditing && editingReferenceIndex !== null) {
-            // Update existing reference
-            savedReferences = savedReferences.map((ref, i) =>
-                i === editingReferenceIndex
-                    ? {
-                          text: reference,
-                          formData: formData,
-                      }
-                    : ref,
-            );
-        } else {
-            // Add new reference
-            savedReferences = [
-                ...savedReferences,
-                {
-                    text: reference,
-                    formData: formData,
-                },
-            ];
-        }
-
-        resource.references = savedReferences;
-        dispatch("update", {
-            id: resource.id,
-            field: "references",
-            value: savedReferences,
-        });
-
-        // Clear state
-        showReferenceModal = false;
-        isEditing = false;
-        editingReferenceIndex = null;
-    }
-
-    function handleDeleteReference(index) {
-        referenceToDeleteIndex = index;
-        showDeleteReferenceModal = true;
-    }
-
-    function confirmDeleteReference() {
-        if (referenceToDeleteIndex !== null) {
-            savedReferences = savedReferences.filter(
-                (_, i) => i !== referenceToDeleteIndex,
-            );
-            resource.references = savedReferences;
-            dispatch("update", {
-                id: resource.id,
-                field: "references",
-                value: savedReferences,
-            });
-            closeDeleteReferenceModal();
-        }
-    }
-
-    function closeDeleteReferenceModal() {
-        showDeleteReferenceModal = false;
-        referenceToDeleteIndex = null;
-    }
-
     // Functions for form operations
-
-
     function handleVideoUrlChange(event) {
         const url = event.target.value;
         videoUrlLength = url.length;
@@ -325,10 +231,10 @@
     }
 
     function handleDelete(event) {
-    const { id } = event.detail;
-    // Silme işlemini gerçekleştir
-    dispatch("delete", { id });
-}
+        const { id } = event.detail;
+        // Silme işlemini gerçekleştir
+        dispatch("delete", { id });
+    }
 
     onMount(() => {
         if (typeof window !== "undefined") {
@@ -474,17 +380,6 @@
 
     // SVG Icons Library
     const icons = {
-
-        edit: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <g clip-path="url(#clip0_76_4984)">
-              <path d="M3 17.25V21H6.75L17.81 9.94L14.06 6.19L3 17.25ZM20.71 7.04C21.1 6.65 21.1 6.02 20.71 5.63L18.37 3.29C17.98 2.9 17.35 2.9 16.96 3.29L15.13 5.12L18.88 8.87L20.71 7.04Z" fill="currentColor"/>
-            </g>
-            <defs>
-              <clipPath id="clip0_76_4984">
-                <rect width="24" height="24" fill="white"/>
-              </clipPath>
-            </defs>
-          </svg>`,
         resize: ` <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M19 5L5 19M19 5H12M19 5V12M5 19H12M5 19V12" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
@@ -638,7 +533,10 @@
 
         <div class="form-section">
             <h3>Title</h3>
-            <ResourceTitle {resource} on:update={event => dispatch("update", event.detail)} />
+            <ResourceTitle
+                {resource}
+                on:update={(event) => dispatch("update", event.detail)}
+            />
         </div>
 
         <div class="form-section">
@@ -672,66 +570,14 @@
 
         <div class="form-section">
             <h3>Reference</h3>
-            {#if savedReferences.length > 0}
-                <div class="references-container">
-                    {#each savedReferences as reference, index}
-                        <div class="reference-item">
-                            <p
-                                bind:innerHTML={reference.text}
-                                contenteditable="false"
-                            ></p>
-                            <div class="reference-actions">
-                                <button
-                                    class="action-btn edit-btn"
-                                    on:click={() => handleEditReference(index)}
-                                    aria-label="Edit reference"
-                                >
-                                    {@html icons.edit}
-                                </button>
-                                <button
-                                    class="action-btn delete-btn"
-                                    on:click={() =>
-                                        handleDeleteReference(index)}
-                                    aria-label="Delete reference"
-                                >
-                                    {@html icons.delete}
-                                </button>
-                            </div>
-                        </div>
-                    {/each}
-                </div>
-            {/if}
-            <button class="reference-btn" on:click={openReferenceModal}>
-                Add reference +
-            </button>
-        </div>
-
-        <Modal
-            bind:showModal={showReferenceModal}
-            title="APA 7th Reference Generator"
-        >
-            <ReferenceHelper
-                on:save={handleSaveReference}
-                {isEditing}
-                reference={isEditing
-                    ? savedReferences[editingReferenceIndex]
-                    : null}
+            <ResourceReference
+                {resource}
+                on:update={(event) => dispatch("update", event.detail)}
             />
-        </Modal>
+        </div>
     </div>
     <ResourceDelete {resource} on:delete={handleDelete} />
 </div>
-
-
-
-<ConfirmationModal
-    show={showDeleteReferenceModal}
-    type="deleteReference"
-    content={savedReferences[referenceToDeleteIndex]?.text || "Reference"}
-    isHtml={true}
-    onConfirm={confirmDeleteReference}
-    onCancel={closeDeleteReferenceModal}
-/>
 
 <style>
     * {
@@ -765,7 +611,6 @@
         color: #333;
         font-weight: 400;
     }
-
 
     .description-container {
         border: 1px solid #e5e5e5;
@@ -807,13 +652,6 @@
         letter-spacing: -1.1%;
         color: #949494;
     }
-
-    .resource-section .delete-btn {
-        margin-left: auto;
-        display: flex;
-    }
-
-
 
     .feature-element {
         width: 100%;
@@ -1227,92 +1065,6 @@
         text-overflow: ellipsis;
     }
 
-    .reference-btn {
-        background: white;
-        border: 1px solid #e5e5e5;
-        border-radius: 1px;
-        padding: 8px 16px;
-        cursor: pointer;
-        font-size: 14px;
-        text-align: left;
-        transition: all 0.2s ease;
-    }
-
-    .reference-btn:hover {
-        background: #f0f2f5;
-    }
-
-    .references-container {
-        margin-bottom: 1rem;
-        border: 1px solid #e5e5e5;
-        border-radius: 4px;
-        background: white;
-    }
-
-    .reference-item {
-        padding: 1rem;
-        border-bottom: 1px solid #e5e5e5;
-        position: relative;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 1rem;
-    }
-
-    .reference-item:last-child {
-        border-bottom: none;
-    }
-
-    .reference-item p {
-        margin: 0;
-        color: #2c3e50;
-        font-size: 14px;
-        line-height: 1.6;
-        flex: 1;
-    }
-
-    .reference-item p :global(a) {
-        color: #6792ff;
-        text-decoration: none;
-        transition: color 0.3s ease;
-    }
-
-    .reference-item p :global(a:hover) {
-        color: #4a6cd4;
-        text-decoration: underline;
-    }
-
-    .reference-actions {
-        display: flex;
-        align-self: center;
-        transition: opacity 0.2s ease;
-    }
-
-    .action-btn {
-        background: none;
-        border: none;
-        padding: 4px;
-        cursor: pointer;
-        color: #666;
-        transition: color 0.2s ease;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 4px;
-        width: 24px;
-        height: 24px;
-    }
-
-    .action-btn:hover {
-        background: #f5f5f5;
-    }
-
-    .edit-btn:hover {
-        color: #1a5aff;
-    }
-
-
-
     .error-message {
         color: #ff5656;
         font-size: 12px;
@@ -1327,8 +1079,6 @@
             bottom: -44px;
         }
     }
-
-
 
     .url-character-count {
         position: absolute;
