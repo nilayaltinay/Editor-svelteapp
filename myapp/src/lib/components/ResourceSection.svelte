@@ -271,7 +271,7 @@
         border-radius: 1px;
         background: white;
         position: relative;
-        padding: 1rem 1rem 0.5rem 1rem;
+        padding: 1rem 0.5rem 0.5rem 0.5rem;
     }
 
     [id^="editor-"] {
